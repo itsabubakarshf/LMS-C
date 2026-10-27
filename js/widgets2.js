@@ -343,7 +343,7 @@ W.errorKinds = function () {
   const [w, b] = shell('🚦 Three kinds of mistakes: compile, run-time and logic', 'run each buggy program');
   const K = [
     ['Compile-time error', 'The compiler refuses. Nothing runs.', '#include <stdio.h>\nint main(void) {\n    int x = 5\n    printf("%d\\n", x);\n    return 0;\n}'],
-    ['Run-time error', 'It builds, then crashes while running.', '#include <stdio.h>\nint main(void) {\n    int *p = NULL;\n    printf("before\\n");\n    *p = 1;\n    printf("after\\n");\n    return 0;\n}'],
+    ['Run-time error', 'It builds, then crashes while running.', '#include <stdio.h>\nint main(void) {\n    int sweets = 10;\n    int kids = 0;\n    printf("before\\n");\n    printf("each gets %d\\n", sweets / kids);\n    return 0;\n}'],
     ['Logic error', 'It builds and runs, but gives the wrong answer — the sneakiest kind.', '#include <stdio.h>\nint main(void) {\n    int a = 7, b = 2;\n    printf("average of 7 and 2: %d\\n", (a + b) / 2);\n    printf("area of 3x4: %d\\n", 3 + 4);\n    return 0;\n}'],
   ];
   b.innerHTML = '<div class="grid2">' + K.map((k, i) => '<div class="card" style="margin:0"><b>' + k[0] + '</b><p class="small muted" style="margin:.3em 0">' + k[1] + '</p><pre class="mono small" style="overflow:auto;margin:6px 0">' + highlight(k[2]) + '</pre><button class="btn sm" data-i="' + i + '">▶ Run this</button><div class="console" style="margin:8px 0 0;max-height:150px;font-size:12px"></div></div>').join('') + '</div>';

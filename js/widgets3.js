@@ -64,42 +64,40 @@ W.fastUnforgiving = function () {
     '<div class="card" style="margin:0"><b>⚙️ C (compiled)</b><ol class="small cc" style="padding-left:1.2em;margin:.4em 0"></ol><div class="bar2" style="height:16px;border-radius:99px;background:var(--panel2);overflow:hidden"><i style="display:block;height:100%;width:0;background:var(--accent);transition:width 1.2s"></i></div></div></div>' +
     '<div class="row" style="margin:12px 0"><button class="btn primary race">🏁 Race (1 million additions)</button><span class="muted small res"></span></div>' +
     '<div class="callout real" style="margin:6px 0"><span class="ico">🚚</span><div><h4>Real life</h4><p class="small">A courier who must <b>read the address, check the parcel type and ask the boss</b> at every door (interpreter) versus one who memorised the whole route in advance (compiled code). Same city, very different speed.</p></div></div>' +
-    '<h3>🧨 Why it is unforgiving: nobody double-checks you</h3><p class="small muted" style="margin-top:0">Run each trap. Notice that C raises <b>no error</b> for the first three.</p><div class="grid2 traps"></div>' +
-    '<div class="tablewrap"><table class="t small"><tr><th>Mistake</th><th>GDScript</th><th>C</th></tr><tr><td>Index past the end of an array</td><td>✅ error message, game stops cleanly</td><td>❌ reads/writes whatever is there</td></tr><tr><td>Integer too big</td><td>✅ (64-bit, rarely overflows)</td><td>❌ wraps silently</td></tr><tr><td>Using a variable you never set</td><td>✅ null / error</td><td>❌ garbage value</td></tr><tr><td>Using a freed or NULL pointer</td><td>✅ “invalid instance” error</td><td>❌ crash — or silent corruption</td></tr><tr><td>Who is responsible?</td><td>the engine</td><td><b>you, the programmer</b></td></tr></table></div>' +
-    defCards([['Interpreter', 'Reads and checks every operation <i>while the program runs</i>. Flexible and safe, but slower.'], ['Compiled code', 'Translated once, ahead of time, into CPU instructions. Runs with no middleman.'], ['Run-time check', 'A safety test performed while running (is this index in range?). C has almost none — that is what makes it fast.'], ['Undefined behaviour', 'Code C gives no rules for (bad index, bad pointer). It may crash, give garbage or seem to work. Not an error message — a trap.'], ['Garbage value', 'Leftover bytes in memory read through an uninitialised variable.']]);
+    '<h3>🧨 Why it is unforgiving: nobody double-checks you</h3><p class="small muted" style="margin-top:0">Run each program. Notice that C says <b>nothing</b> — it does exactly what you typed, even when that is not what you meant.</p><div class="grid2 traps"></div>' +
+    '<div class="tablewrap"><table class="t small"><tr><th>Mistake</th><th>GDScript</th><th>C</th></tr><tr><td>Misspelled variable name</td><td>✅ error message</td><td>✅ compile error (caught before running)</td></tr><tr><td>Typo inside a message</td><td>❌ nobody checks</td><td>❌ nobody checks</td></tr><tr><td>Using a variable you never gave a value</td><td>✅ it starts as null / a default</td><td>❌ garbage value</td></tr><tr><td>Number too big for its type</td><td>✅ (numbers are 64-bit, rarely overflow)</td><td>❌ wraps around silently</td></tr><tr><td>Who is responsible?</td><td>the engine</td><td><b>you, the programmer</b></td></tr></table></div>' +
+    defCards([['Interpreter', 'Reads and checks every operation <i>while the program runs</i>. Flexible and safe, but slower.'], ['Compiled code', 'Translated once, ahead of time, into CPU instructions. Runs with no middleman.'], ['Run-time check', 'A safety test performed while running (is this value allowed here?). C has almost none — that is what makes it fast.'], ['Undefined behaviour', 'Code C gives no rules for (like reading a variable you never set). It may give garbage, crash, or seem to work. Not an error message — a trap.'], ['Garbage value', 'Leftover bytes in memory read through an uninitialised variable.']]);
   const gd = ['look up variable <code>a</code> by name', 'check its type (could be anything!)', 'look up variable <code>b</code>', 'check its type', 'find the right “+” for those types', 'create a new Variant for the result', 'store it in <code>c</code>'];
   const cc = ['<code>mov eax, [a]</code> — load a', '<code>add eax, [b]</code> — add b', '<code>mov [c], eax</code> — store c'];
   b.querySelector('.gd').innerHTML = gd.map(x => '<li>' + x + '</li>').join(''); b.querySelector('.cc').innerHTML = cc.map(x => '<li>' + x + '</li>').join('');
   const bars = b.querySelectorAll('.bar2 i'), res = b.querySelector('.res');
   b.querySelector('.race').onclick = () => { bars.forEach(i => { i.style.transition = 'none'; i.style.width = '0'; }); void b.offsetWidth; bars[0].style.transition = 'width 2.4s linear'; bars[1].style.transition = 'width ' + (2.4 * 3 / 7).toFixed(2) + 's linear'; bars[0].style.width = '100%'; bars[1].style.width = '100%'; res.innerHTML = '≈ <b>7 steps vs 3</b> → C does the same job in under half the work (real engines vary, often 10–100× in tight loops).'; };
   const T = [
-    ['Read past the end of an array', R_(`#include <stdio.h>
+    ['A typo in your own message', R_(`#include <stdio.h>
 int main(void) {
-    int secret = 999;
-    int a[3] = {10, 20, 30};
-    printf("a[3] = %d\\n", a[3]);
+    printf("Welcom to the game!\\n");
     return 0;
-}`), 'No error — a[3] does not exist, so C read the neighbouring variable (secret).'],
-    ['Overflow a number', R_(`#include <stdio.h>
+}`), 'No error — C has no spell-checker. It prints exactly what you typed, typo included.'],
+    ['Dividing two whole numbers', R_(`#include <stdio.h>
 int main(void) {
-    int hp = 2147483647;
-    hp = hp + 1;
-    printf("hp = %d\\n", hp);
+    int pizza = 7;
+    int friends = 2;
+    printf("Each friend gets %d slices\\n", pizza / friends);
     return 0;
-}`), 'No error — the health became negative.'],
-    ['Use a variable you never set', R_(`#include <stdio.h>
+}`), 'No error — whole-number division throws away the .5, so 7 / 2 gives 3.'],
+    ['A box you never filled', R_(`#include <stdio.h>
 int main(void) {
     int score;
     printf("score = %d\\n", score);
     return 0;
-}`), 'No error — garbage (0xCC pattern) was printed.'],
-    ['Follow a NULL pointer', R_(`#include <stdio.h>
+}`), 'No error — "int score;" reserves a box but leaves old junk inside, so you see a strange number.'],
+    ['A number too big for its box', R_(`#include <stdio.h>
 int main(void) {
-    int *p = NULL;
-    printf("about to crash\\n");
-    *p = 1;
+    unsigned char lives = 255;
+    lives = lives + 1;
+    printf("lives = %d\\n", lives);
     return 0;
-}`), 'This one is caught — but by Windows (access violation), after the damage, not by the language.'],
+}`), 'No error — like a car odometer rolling from 99999 to 00000, the number wraps back to 0.'],
   ];
   function R_(s) { return s; }
   const tr = b.querySelector('.traps');
