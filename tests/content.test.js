@@ -4,7 +4,7 @@ global.window = global; global.document = { createElement() { return {}; } };
 global.CInterp = require('../js/cinterp.js'); require('../js/lab.js'); require('../js/lessons.js'); require('../js/lessons2.js');
 const { LESSONS, DEFS } = global.COURSE;
 let bad = 0, ex = 0, pq = 0, qn = 0;
-const fs = require('fs'); const wsrc = fs.readFileSync(__dirname + '/../js/widgets.js', 'utf8') + fs.readFileSync(__dirname + '/../js/widgets2.js', 'utf8');
+const fs = require('fs'); const wsrc = fs.readFileSync(__dirname + '/../js/widgets.js', 'utf8') + fs.readFileSync(__dirname + '/../js/widgets2.js', 'utf8') + fs.readFileSync(__dirname + '/../js/widgets3.js', 'utf8');
 for (const l of LESSONS) for (const b of l.blocks) {
   if (b.t === 'widget' && !new RegExp('W\\.' + b.w + ' = function').test(wsrc)) { console.log('❌ missing widget', b.w); bad++; }
   if (b.t === 'example') {

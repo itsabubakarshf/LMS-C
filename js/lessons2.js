@@ -39,6 +39,8 @@ C.DEFS = {
     ['Object file', 'The compiler’s output for one source file (<code>.obj</code> / <code>.o</code>): machine code with holes where other functions’ addresses go.'],
     ['Linker', 'Joins object files and libraries, fills in those holes and writes the final <code>.exe</code>. Produces “undefined reference” errors.'],
     ['Executable (.exe)', 'The finished program. On Windows it is a <b>PE file</b> starting with the letters “MZ”.'],
+    ['Symbol', 'A function or global-variable name tracked by the compiler and linker, e.g. <code>main</code>, <code>printf</code>.'],
+    ['Relocation', 'A note in an object file telling the linker which blank address to patch with which symbol’s final address.'],
     ['Interpreter', 'A program that reads and runs code <i>while</i> it runs (like Godot running GDScript). Slower than compiled code but flexible.'],
     ['Undefined behaviour', 'Code the C standard gives no rules for (bad pointer, out-of-range index). Anything may happen: crash, wrong value, or “works” by luck.'],
   ],
@@ -195,6 +197,9 @@ int main(void) {
     printf("!\n");
     return 0;
 }`, o: ['Hello C!↵', 'Hello↵ C↵!↵', 'Hello C !', 'Hello'], a: 0, why: 'printf does not add a newline by itself. The only \\n is at the end.' },
+    { q: 'Why can an object file (.obj) not run on its own?', o: ['It is encrypted', 'Some function addresses are still blank until the linker fills them in', 'It contains only comments', 'Windows forbids .obj files'], a: 1, why: 'The compiler translated one file only; calls into other files and libraries are left as blanks with a relocation note.' },
+    { q: 'In an object file’s symbol table, what does an UNDEFINED symbol mean?', o: ['The name is misspelled', 'It is used here but defined in another file or library', 'It is a deleted function', 'It is a comment'], a: 1, why: 'The linker’s job is to find a DEFINED symbol with that name elsewhere and patch the call.' },
+    { q: 'Both main.c and math.c compile with no errors, yet the build fails with “undefined reference to square”. Which stage failed?', o: ['The preprocessor', 'The compiler', 'The linker', 'The CPU'], a: 2, why: 'Each file was fine alone; the linker could not find a definition of square to connect to the call.' },
     { q: 'Why is C considered “close to the hardware”?', o: ['It only runs on old computers', 'You work directly with memory, bytes and addresses', 'It has no functions', 'It needs assembly to run'], a: 1, why: 'Pointers, manual memory and fixed-size types map directly onto how the machine works.' },
   ],
   hello: [
@@ -931,6 +936,11 @@ int main(void) {
 Object.keys(C.DEFS).forEach(id => ins(id, 'start', [defs(id)]));
 
 /* diagrams — placed near the concepts they explain */
+ins('how', 'afterWidget:pipeline', [
+  { t: 'html', h: '<div class="card"><h3 style="margin-top:0">🎯 Lesson goals → diagrams</h3><ol class="goals"><li><b>Explain what a compiler and a linker do</b> → <a href="#" onclick="document.getElementById(\'dg-compiler\').scrollIntoView({behavior:\'smooth\'});return false">compiler &amp; linker diagram</a> and <a href="#" onclick="document.getElementById(\'dg-object\').scrollIntoView({behavior:\'smooth\'});return false">inside an object file</a></li><li><b>Know why C is fast — and why it is unforgiving</b> → <a href="#" onclick="document.getElementById(\'dg-fast\').scrollIntoView({behavior:\'smooth\'});return false">speed race &amp; the four traps</a></li><li><b>Run your very first C program</b> → <a href="#" onclick="document.getElementById(\'dg-first\').scrollIntoView({behavior:\'smooth\'});return false">edit → compile → run cycle</a></li></ol></div>' },
+  W('compilerLinker'), W('objectFile'), W('fastUnforgiving'),
+]);
+ins('how', 'beforeLab:l1-first', [W('firstProgram')]);
 ins('how', 'afterLab:l1-first', [W('errorKinds'), EX.how[0]]);
 ins('hello', 'afterLab:l2-fix', [W('flowDebug')]);
 ins('hello', 'afterWidget:anatomy', [EX.hello[0]]);
