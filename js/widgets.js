@@ -491,5 +491,6 @@ W.callStack = function () {
   build(); show(); return w;
 };
 
+W._h = { flowchart, player, shell, code, hex, uid: () => ++uidN };
 root.Widgets = W;
 })(window);

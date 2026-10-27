@@ -7,7 +7,7 @@ A self-contained learning-management site for teaching C to someone who already 
 
 ## What is inside
 
-* **12 lessons / 115 minutes** — how C runs · Hello World · types & memory · operators & printf · decisions · loops · functions ·
+* **12 lessons / 115 minutes** (each with key-term definitions, real-life coding examples and two quizzes) — how C runs · Hello World · types & memory · operators & printf · decisions · loops · functions ·
   arrays & strings · **pointers** · structs & heap · **first Windows API calls** · wrap-up, homework and roadmap.
 * **A built-in C "compiler"** (`js/cinterp.js`) that runs in the browser. It has a real byte-addressable memory, so `sizeof`,
   pointers, overflow, uninitialised variables (`0xCC`), `malloc`/`free` (with leak detection), NULL-pointer crashes and
@@ -15,7 +15,9 @@ A self-contained learning-management site for teaching C to someone who already 
 * **Step-through debugger** — watch variables, arrays, structs, the call stack, the heap and "→ points to" arrows change line by line.
 * **Win32 simulation** — `MessageBoxA` (pops up a Windows-style dialog), `GetLocalTime`, `CreateFileA/WriteFile/ReadFile` (virtual disk),
   `HeapAlloc`, `Sleep`, `GetTickCount`, …
-* **Interactive diagrams** — compile pipeline, decision & loop flowcharts, array "lockers", pointer street, struct padding explorer,
+* **140 multiple-choice questions** (29 are “what does this print?” with a run-it-to-check button), a randomised **30-question final exam**, and a searchable **glossary** of 120+ terms.
+* **26 runnable real-life examples** — RPG stats, damage calculator, enemy AI, health bar, high-score table, inventory, growable array, save-game file, confirm dialogs…
+* **Interactive diagrams** — click-the-bits, logic gates, operator precedence, type-picker flowchart, switch / while / do-while flowcharts, string and 2D-array memory views, pointer arrows, pass-by-value vs pointer, stack/heap/globals map, linked list, handle table, Win32 file-API flowchart, a "my code is wrong" troubleshooting flowchart and compile pipeline, decision & loop flowcharts, array "lockers", pointer street, struct padding explorer,
   heap hotel, call stack, Win32 signature reader, and an interactive **Windows message loop**.
 * Real-life analogies, GDScript-vs-C comparisons, 24 hands-on labs with checkers, quizzes with explanations, progress tracking
   (saved in the browser), dark mode, cheat-sheet and free playground.
@@ -38,6 +40,7 @@ Widgets are in `js/widgets.js`, the editor/stepper in `js/lab.js`, the C interpr
 
 ```bash
 node tests/labs.test.js     # compiles every lab's starter + reference solution and runs its checker
+node tests/content.test.js  # runs every example, checks every 'what is printed?' answer, validates all quizzes
 node tests/t1.js            # interpreter smoke tests
 ```
 

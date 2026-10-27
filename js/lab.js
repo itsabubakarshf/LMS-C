@@ -75,6 +75,7 @@ function create(cfg) {
   const badge = root.querySelector('.badge');
   const setBadge = ok => { badge.textContent = ok ? '✅ task complete' : (cfg.expect ? 'task not done yet' : 'free play'); badge.className = 'badge' + (ok ? ' ok' : ''); };
   setBadge(store.get('done.' + cfg.id) === '1');
+  if (cfg.noBadge) badge.style.display = 'none';
   if (cfg.intro) root.appendChild(el('p', 'lab-intro', cfg.intro));
   if (cfg.task) root.appendChild(el('div', 'lab-task', '🎯 <b>Your task:</b> ' + cfg.task));
 

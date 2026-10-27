@@ -29,7 +29,7 @@ function renderNav(route) {
   $('#progTxt').textContent = doneCount + ' / ' + LESSONS.length + ' · ' + doneMin + '/' + TOTAL_MIN + ' min';
   let h = '<a href="#/start" class="' + (route === 'start' ? 'on' : '') + '"><span class="num">★</span>Start here</a><h6>Lessons · ' + TOTAL_MIN + ' minutes</h6>';
   LESSONS.forEach((l, i) => { h += '<a href="#/lesson/' + l.id + '" class="' + (route === 'lesson/' + l.id ? 'on ' : '') + (isDone(l.id) ? 'done' : '') + '"><span class="num">' + (isDone(l.id) ? '✓' : i + 1) + '</span>' + esc(l.title) + '<span class="min">' + l.min + '′</span></a>'; });
-  h += '<h6>Tools</h6><a href="#/play" class="' + (route === 'play' ? 'on' : '') + '"><span class="num">⌨</span>Playground</a><a href="#/cheat" class="' + (route === 'cheat' ? 'on' : '') + '"><span class="num">📋</span>Cheat sheet</a>';
+  h += '<h6>Tools</h6><a href="#/play" class="' + (route === 'play' ? 'on' : '') + '"><span class="num">⌨</span>Playground</a><a href="#/cheat" class="' + (route === 'cheat' ? 'on' : '') + '"><span class="num">📋</span>Cheat sheet</a><a href="#/glossary" class="' + (route === 'glossary' ? 'on' : '') + '"><span class="num">📖</span>Glossary</a><a href="#/exam" class="' + (route === 'exam' ? 'on' : '') + '"><span class="num">🎓</span>Final exam' + (store.get('exam.best') ? ' · best ' + store.get('exam.best') + '%' : '') + '</a>';
   h += '<h6>Course</h6><a href="#" id="resetAll" style="color:var(--muted)"><span class="num">↺</span>Reset my progress</a>';
   nav.innerHTML = h;
   const r = $('#resetAll'); if (r) r.onclick = e => { e.preventDefault(); if (confirm('Erase all progress, quiz answers and saved code on this browser?')) { try { Object.keys(localStorage).filter(k => k.startsWith('cq.')).forEach(k => localStorage.removeItem(k)); } catch (_) {} location.hash = '#/start'; location.reload(); } };
@@ -38,15 +38,17 @@ function renderNav(route) {
 /* ---------------------------------------------------------------- blocks */
 function callout(cls, ico, title, h) { return el('div', 'callout ' + cls, '<div class="ico">' + ico + '</div><div><h4>' + title + '</h4><div>' + h + '</div></div>'); }
 
-function quizBlock(lesson, qs, qid) {
-  const wrap = el('div', 'quiz'); wrap.appendChild(el('h2', '', '🧠 Quick check'));
+function quizBlock(lesson, qs, qid, title) {
+  const wrap = el('div', 'quiz'); wrap.appendChild(el('h2', '', title || '🧠 Quick check'));
   const score = el('p', 'muted small');
-  const upd = () => { let a = 0, c = 0; qs.forEach((q, i) => { const v = store.get('quiz.' + lesson.id + '.' + qid + '.' + i); if (v !== null) { a++; if (+v === q.a) c++; } }); score.textContent = a ? 'Score: ' + c + ' / ' + qs.length + (a < qs.length ? ' (answered ' + a + ')' : '') : ''; };
+  const upd = () => { let a = 0, c = 0; qs.forEach((q, i) => { const v = store.get('quiz.' + lesson.id + '.' + qid + '.' + i); if (v !== null) { a++; if (+v === q.a) c++; } }); score.textContent = a ? 'Score: ' + c + ' / ' + qs.length + (a < qs.length ? ' (answered ' + a + ')' : (c === qs.length ? ' — perfect! 🌟' : '')) : ''; };
   qs.forEach((q, qi) => {
     const key = 'quiz.' + lesson.id + '.' + qid + '.' + qi;
     const box = el('div', 'q'); box.appendChild(el('div', 'qt', (qi + 1) + '. ' + esc(q.q)));
+    if (q.code) { const pre = el('pre', 'mono small qcode', highlight(q.code)); pre.style.cssText = 'margin:6px 0 10px;padding:10px 14px;border-radius:10px;background:var(--code-bg);border:1px solid var(--line);overflow:auto'; box.appendChild(pre); }
     const btns = q.o.map((o, oi) => { const b = el('button', 'opt', esc(o)); b.onclick = () => choose(oi, true); box.appendChild(b); return b; });
     const why = el('div', 'why', '💡 ' + q.why); box.appendChild(why);
+    if (q.code && q.run !== false) { const rb = el('button', 'btn sm', '▶ Run it and see'); rb.style.marginTop = '8px'; const outp = el('pre', 'console', ''); outp.style.cssText = 'margin:8px 0 0;max-height:140px;font-size:12.5px'; rb.onclick = () => { const r = CInterp.run(q.code, { trace: false }); outp.textContent = r.phase === 'compile' ? 'error: ' + r.errors[0].msg : r.stdout + (r.ok === false ? '\n💥 ' + r.error : ''); }; box.appendChild(rb); box.appendChild(outp); }
     function choose(oi, save) {
       btns.forEach((b, i) => { b.disabled = true; if (i === q.a) b.classList.add('right'); else if (i === oi) b.classList.add('wrong'); });
       box.classList.add('answered'); if (save) store.set(key, String(oi)); upd();
@@ -55,6 +57,22 @@ function quizBlock(lesson, qs, qid) {
     wrap.appendChild(box);
   });
   wrap.appendChild(score); upd(); return wrap;
+}
+
+function defsBlock(defs, title) {
+  const d = el('div', 'defs'); d.appendChild(el('h2', '', title || '📖 Key terms'));
+  const g = el('div', 'dgrid');
+  defs.forEach(x => g.appendChild(el('div', 'dcard', '<b>' + x[0] + '</b><p>' + x[1] + '</p>')));
+  d.appendChild(g); return d;
+}
+
+function exampleBlock(b) {
+  const wrap = el('div', 'example');
+  wrap.appendChild(el('h2', '', '🌍 Real-life example: ' + esc(b.title)));
+  if (b.why) wrap.appendChild(el('p', '', b.why));
+  wrap.appendChild(Lab.create({ id: b.id, title: b.title, icon: '🌍', code: b.code, stdin: b.stdin, noBadge: true, hint: b.hint, maxRows: 26 }));
+  if (b.after) wrap.appendChild(el('p', 'muted small', '💬 ' + b.after));
+  return wrap;
 }
 
 function renderBlock(lesson, b, idx) {
@@ -71,7 +89,9 @@ function renderBlock(lesson, b, idx) {
     }
     case 'widget': return Widgets[b.w]();
     case 'lab': return Lab.create(b);
-    case 'quiz': return quizBlock(lesson, b.qs, idx);
+    case 'quiz': return quizBlock(lesson, b.qs, idx, b.title);
+    case 'defs': return defsBlock(b.defs, b.title);
+    case 'example': return exampleBlock(b);
   }
   return el('div');
 }
@@ -139,6 +159,48 @@ function playPage() {
   main.appendChild(el('div', 'callout warn', '<div class="ico">ℹ️</div><div><h4>What the mini-compiler supports</h4><p class="small">int/char/float/double/long long, pointers, arrays, structs, enums, typedef, #define (including macros with arguments), if/for/while/do/switch, functions and recursion, stdio/stdlib/string/math/ctype basics, and a few Win32 functions. Not supported: function pointers, goto, unions with initialisers, floating-point <code>%e</code> edge cases, real windows.</p></div>'));
   document.title = 'Playground · C Quest';
 }
+
+function glossaryPage() {
+  main.innerHTML = '<h1>📖 Glossary</h1><p class="lead">Every key term from the course in one place. Type to filter.</p>';
+  const inp = el('input', 'field'); inp.placeholder = 'search terms…'; inp.style.cssText = 'width:100%;max-width:420px;margin:6px 0 16px'; main.appendChild(inp);
+  const g = el('div', 'dgrid'); main.appendChild(g);
+  const all = []; LESSONS.forEach((l, i) => (COURSE.DEFS[l.id] || []).forEach(d => all.push({ t: d[0], d: d[1], l: i + 1 })));
+  all.sort((a, b) => a.t.replace(/<[^>]+>/g, '').toLowerCase().localeCompare(b.t.replace(/<[^>]+>/g, '').toLowerCase()));
+  const draw = () => { const q = inp.value.toLowerCase(); g.innerHTML = ''; all.filter(x => !q || (x.t + ' ' + x.d).toLowerCase().includes(q)).forEach(x => g.appendChild(el('div', 'dcard', '<b>' + x.t + '</b> <span class="muted small">· lesson ' + x.l + '</span><p>' + x.d + '</p>'))); };
+  inp.oninput = draw; draw(); document.title = 'Glossary · C Quest';
+}
+
+function examPage() {
+  main.innerHTML = '<h1>🎓 Final exam</h1><p class="lead">30 random questions from every lesson, shuffled each time. Answer everything, then press <b>Submit</b>. Your best score is saved.</p>';
+  const pool = [];
+  LESSONS.forEach((l, li) => l.blocks.filter(b => b.t === 'quiz').forEach(qb => qb.qs.forEach(q => pool.push({ q, li }))));
+  const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const N = Math.min(30, pool.length);
+  const picked = shuffle(pool).slice(0, N).map(p => { const idx = shuffle(p.q.o.map((_, i) => i)); return { q: p.q, li: p.li, order: idx, right: idx.indexOf(p.q.a), chosen: -1 }; });
+  const list = el('div'); main.appendChild(list);
+  picked.forEach((p, i) => {
+    const box = el('div', 'q'); box.appendChild(el('div', 'qt', (i + 1) + '. ' + esc(p.q.q)));
+    if (p.q.code) { const pre = el('pre', 'mono small', highlight(p.q.code)); pre.style.cssText = 'margin:6px 0 10px;padding:10px 14px;border-radius:10px;background:var(--code-bg);border:1px solid var(--line);overflow:auto'; box.appendChild(pre); }
+    p.btns = p.order.map((oi, k) => { const b = el('button', 'opt', esc(p.q.o[oi])); b.onclick = () => { if (p.done) return; p.chosen = k; p.btns.forEach((x, j) => x.style.outline = j === k ? '2px solid var(--accent)' : ''); upd(); }; box.appendChild(b); return b; });
+    p.why = el('div', 'why', '💡 ' + p.q.why); box.appendChild(p.why); p.box = box; list.appendChild(box);
+  });
+  const bar = el('div', 'finish'); const sub = el('button', 'btn primary', 'Submit exam'); const prog = el('span', 'muted', '0 / ' + N + ' answered'); bar.append(sub, prog); main.appendChild(bar);
+  const res = el('div'); main.appendChild(res);
+  function upd() { prog.textContent = picked.filter(p => p.chosen >= 0).length + ' / ' + N + ' answered'; }
+  sub.onclick = () => {
+    if (sub.dataset.done) { examPage(); window.scrollTo(0, 0); return; }
+    const un = picked.filter(p => p.chosen < 0).length;
+    if (un && !confirm(un + ' question(s) are unanswered and will count as wrong. Submit anyway?')) return;
+    let c = 0; const weak = {};
+    picked.forEach(p => { p.done = true; p.btns.forEach((b, k) => { b.disabled = true; b.style.outline = ''; if (k === p.right) b.classList.add('right'); else if (k === p.chosen) b.classList.add('wrong'); }); p.box.classList.add('answered'); if (p.chosen === p.right) c++; else weak[p.li] = (weak[p.li] || 0) + 1; });
+    const pct = Math.round(c / N * 100); const best = Math.max(pct, +(store.get('exam.best') || 0)); store.set('exam.best', String(best));
+    const grade = pct >= 90 ? ['🏆', 'Outstanding!'] : pct >= 75 ? ['🌟', 'Great job!'] : pct >= 60 ? ['👍', 'Solid — review the topics below.'] : ['📚', 'Keep going — revisit the lessons below and retake.'];
+    res.innerHTML = '<div class="card" style="text-align:center"><div style="font-size:3rem">' + grade[0] + '</div><h2 style="margin:.2em 0">' + c + ' / ' + N + ' · ' + pct + '%</h2><p>' + grade[1] + ' Best so far: <b>' + best + '%</b></p>' +
+      (Object.keys(weak).length ? '<p class="small">Review: ' + Object.keys(weak).map(k => '<a href="#/lesson/' + LESSONS[k].id + '">' + esc(LESSONS[k].title) + '</a> (' + weak[k] + ' missed)').join(' · ') + '</p>' : '<p>No misses at all!</p>') + '</div>';
+    sub.textContent = '↺ New exam'; sub.dataset.done = '1'; res.scrollIntoView({ behavior: 'smooth' }); renderNav('exam');
+  };
+  document.title = 'Final exam · C Quest';
+}
 function cheatPage() { main.innerHTML = CHEAT; document.title = 'Cheat sheet · C Quest'; }
 
 /* ---------------------------------------------------------------- router */
@@ -146,7 +208,7 @@ function route() {
   const h = (location.hash || '#/start').replace(/^#\/?/, '');
   document.body.classList.remove('navopen');
   const [kind, arg] = h.split('/');
-  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else startPage();
+  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else if (kind === 'glossary') glossaryPage(); else if (kind === 'exam') examPage(); else startPage();
   renderNav(kind === 'lesson' ? 'lesson/' + arg : kind || 'start');
   window.scrollTo(0, 0); main.focus({ preventScroll: true });
 }
