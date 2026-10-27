@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C Quest — Learn C and the Windows API</title>
+<meta name="description" content="A 2-hour interactive course: C fundamentals, pointers and the Windows API, with a built-in C compiler that runs in your browser.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
+    <a class="brand" href="#/start"><span class="logo">C</span><span>C&nbsp;Quest</span></a>
+    <div class="progress" title="Course progress"><div class="bar"><i id="progBar"></i></div><span id="progTxt">0 / 12</span></div>
+    <label class="switch" title="Show talking points for the teacher"><input type="checkbox" id="tutorToggle"><span>Tutor notes</span></label>
+    <button id="themeBtn" class="icon-btn" aria-label="Toggle theme">🌓</button>
+  </header>
+  <nav id="nav" aria-label="Course outline"></nav>
+  <main id="main" tabindex="-1"></main>
+</div>
+<div id="scrim"></div>
+<noscript><p style="padding:2rem">This course needs JavaScript. Open index.html in a normal browser.</p></noscript>
+<script src="js/cinterp.js"></script>
+<script src="js/lab.js"></script>
+<script src="js/widgets.js"></script>
+<script src="js/lessons.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
