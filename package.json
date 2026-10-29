@@ -1,0 +1,6 @@
+{
+  "name": "c-quest",
+  "private": true,
+  "type": "module",
+  "description": "Interactive 2-hour C + Windows API course (static site). middleware.js adds a login gate on Vercel."
+}

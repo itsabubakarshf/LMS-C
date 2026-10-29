@@ -15,6 +15,7 @@ $('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme =
 const tt = $('#tutorToggle');
 tt.checked = store.get('tutor') === '1'; document.body.classList.toggle('tutor', tt.checked);
 tt.onchange = () => { document.body.classList.toggle('tutor', tt.checked); store.set('tutor', tt.checked ? '1' : '0'); };
+if (/^https?:$/.test(location.protocol) && !/localhost|127\.0\.0\.1/.test(location.hostname)) { const so = el('a', 'icon-btn', '⎋'); so.href = '/__logout'; so.title = 'Sign out'; so.setAttribute('aria-label', 'Sign out'); so.style.cssText = 'display:grid;place-items:center;text-decoration:none'; $('#themeBtn').after(so); }
 $('#menuBtn').onclick = () => document.body.classList.toggle('navopen');
 $('#scrim').onclick = () => document.body.classList.remove('navopen');
 
@@ -29,7 +30,7 @@ function renderNav(route) {
   $('#progTxt').textContent = doneCount + ' / ' + LESSONS.length + ' · ' + doneMin + '/' + TOTAL_MIN + ' min';
   let h = '<a href="#/start" class="' + (route === 'start' ? 'on' : '') + '"><span class="num">★</span>Start here</a><h6>Lessons · ' + TOTAL_MIN + ' minutes</h6>';
   LESSONS.forEach((l, i) => { h += '<a href="#/lesson/' + l.id + '" class="' + (route === 'lesson/' + l.id ? 'on ' : '') + (isDone(l.id) ? 'done' : '') + '"><span class="num">' + (isDone(l.id) ? '✓' : i + 1) + '</span>' + esc(l.title) + '<span class="min">' + l.min + '′</span></a>'; });
-  h += '<h6>Tools</h6><a href="#/play" class="' + (route === 'play' ? 'on' : '') + '"><span class="num">⌨</span>Playground</a><a href="#/cheat" class="' + (route === 'cheat' ? 'on' : '') + '"><span class="num">📋</span>Cheat sheet</a><a href="#/glossary" class="' + (route === 'glossary' ? 'on' : '') + '"><span class="num">📖</span>Glossary</a><a href="#/exam" class="' + (route === 'exam' ? 'on' : '') + '"><span class="num">🎓</span>Final exam' + (store.get('exam.best') ? ' · best ' + store.get('exam.best') + '%' : '') + '</a>';
+  h += '<h6>Tools</h6><a href="#/play" class="' + (route === 'play' ? 'on' : '') + '"><span class="num">⌨</span>Playground</a><a href="#/cheat" class="' + (route === 'cheat' ? 'on' : '') + '"><span class="num">📋</span>Cheat sheet</a><a href="#/session" class="' + (route === 'session' ? 'on' : '') + '"><span class="num">⏱</span>1-hour session plan</a><a href="#/glossary" class="' + (route === 'glossary' ? 'on' : '') + '"><span class="num">📖</span>Glossary</a><a href="#/exam" class="' + (route === 'exam' ? 'on' : '') + '"><span class="num">🎓</span>Final exam' + (store.get('exam.best') ? ' · best ' + store.get('exam.best') + '%' : '') + '</a>';
   h += '<h6>Course</h6><a href="#" id="resetAll" style="color:var(--muted)"><span class="num">↺</span>Reset my progress</a>';
   nav.innerHTML = h;
   const r = $('#resetAll'); if (r) r.onclick = e => { e.preventDefault(); if (confirm('Erase all progress, quiz answers and saved code on this browser?')) { try { Object.keys(localStorage).filter(k => k.startsWith('cq.')).forEach(k => localStorage.removeItem(k)); } catch (_) {} location.hash = '#/start'; location.reload(); } };
@@ -201,6 +202,35 @@ function examPage() {
   };
   document.title = 'Final exam · C Quest';
 }
+
+function sessionPage() {
+  const AG = [
+    [5, 'Welcome and goals', '#/start', ['What do you want to build with C — a game, a tool, or understanding how Windows works?', 'Quick level check: have you used a compiler? What is hexadecimal? What did you do in x64?', 'Agree the weekday time slot for the next sessions.'], 'Share your screen. Keep explanations short, then he types.'],
+    [10, 'How C runs: compiler, linker, first program', '#/lesson/how', ['Play the compiler & linker diagram with “math.c forgotten”.', 'Open “inside an object file” and press Link.', 'Run the first lab together.'], 'Skip the race animation if short on time.'],
+    [10, 'Hello World and reading compiler errors', '#/lesson/hello', ['Anatomy diagram: hover each part.', 'Lab “Fix the broken program” — he drives, you only point.', 'Say it aloud: read the first error, then look at the line above.'], 'This is the most valuable skill of day one.'],
+    [15, 'Variables and types', '#/lesson/types', ['Type sizes, then the “click the bits” byte (255 + 1, then 127 in a char).', 'Lab: the uninitialised garbage value (step through).', 'Lab: overflow challenge.'], 'Bridge to his x64: little-endian bytes = the debugger’s memory view.'],
+    [8, 'Decisions and loops, fast', '#/lesson/loops', ['Flowchart for if/else (slide hp), then the for-loop flowchart.', 'Lab: 3 times table (step through).'], 'If behind, do only the loop flowchart and the times table.'],
+    [9, 'The Windows wow moment', '#/lesson/win', ['Read the MessageBoxA signature with the API reader.', 'Lab: show a message box with a title and an icon.', 'Show the message-loop diagram for 2 minutes as a teaser.'], 'Finish here even if you skipped earlier parts — motivation matters.'],
+    [3, 'Wrap-up', '#/lesson/done', ['“What was clearest? What was muddiest?” — write both down.', 'Give the homework (below).', 'Book the next session: pointers, arrays and structs.'], ''],
+  ];
+  const tot = AG.reduce((a, x) => a + x[0], 0);
+  main.innerHTML = '<h1>⏱ Today’s 1-hour session</h1><p class="lead">A minute-by-minute plan for a first live lesson. Start the timer when you begin; tick each block when done.</p>' +
+    '<div class="card"><div class="row sp"><div><b>Elapsed:</b> <span id="tm" style="font:700 1.6rem var(--mono)">00:00</span> <span class="muted">/ ' + tot + ':00</span></div><div class="row"><button class="btn primary" id="tgo">▶ Start</button><button class="btn" id="trs">Reset</button></div></div><div class="bar" style="width:100%;margin-top:10px;height:10px"><i id="tbar"></i></div></div>' +
+    '<div class="callout real"><div class="ico">✅</div><div><h4>Before the call (5 minutes)</h4><div class="small"><ul class="goals"><li>Open this site and sign in; test screen-sharing.</li><li>Ask the student to open the same link, or to install <b>Visual Studio Community</b> beforehand (“Desktop development with C++”). Not required today — the in-browser compiler is enough.</li><li>Have a glass of water and the lesson order ready: 1 → 2 → 3 → 6 → 11.</li></ul></div></div></div><div class="agenda"></div>' +
+    '<h2>🎯 If you finish early</h2><ul class="goals"><li>Operators and printf playground (lesson 4): integer division trap, <code>%d %f %s %c</code>.</li><li>Functions (lesson 7): the “swap that does not swap” lab, as a cliff-hanger for pointers.</li><li>The “my code doesn’t work” troubleshooting flowchart (lesson 2).</li></ul>' +
+    '<h2>📝 Homework (small)</h2><ol class="goals"><li>Redo the Hello World and message-box labs without looking at the solution.</li><li>Write a program that prints your name, age and favourite game with <code>printf</code> and variables.</li><li>Install Visual Studio Community or MinGW-w64 and compile hello world on his own PC (steps on the Start page).</li><li>Finish lesson 1 and 2 quizzes (Challenge rounds) and note anything confusing.</li></ol>' +
+    '<h2>🔭 Next session</h2><p>Arrays and strings → pointers → structs and malloc → a first real Win32 window. All of it is already in the course.</p>';
+  const ag = main.querySelector('.agenda'); let t0 = 0;
+  AG.forEach((x, i) => { const start = t0; t0 += x[0];
+    const key = 'sess.' + i; const d = el('div', 'card agitem');
+    d.innerHTML = '<div class="row sp"><label style="display:flex;gap:10px;align-items:center;cursor:pointer"><input type="checkbox" ' + (store.get(key) === '1' ? 'checked' : '') + '><b>' + String(start).padStart(2, '0') + '–' + String(t0).padStart(2, '0') + ' min · ' + x[1] + '</b></label><a class="btn sm" href="' + x[2] + '">Open ➜</a></div><ul class="goals small" style="margin-top:8px">' + x[3].map(q => '<li>' + q + '</li>').join('') + '</ul>' + (x[4] ? '<div class="muted small">💡 ' + x[4] + '</div>' : '');
+    d.dataset.s = start; d.dataset.e = t0; d.querySelector('input').onchange = e => store.set(key, e.target.checked ? '1' : '0'); ag.appendChild(d); });
+  let sec = 0, tmr = null; const tm = $('#tm'), bar = $('#tbar'), go = $('#tgo');
+  const paint = () => { const m = Math.floor(sec / 60); tm.textContent = String(m).padStart(2, '0') + ':' + String(sec % 60).padStart(2, '0'); bar.style.width = Math.min(100, sec / (tot * 60) * 100) + '%'; ag.querySelectorAll('.agitem').forEach(d => { const on = m >= +d.dataset.s && m < +d.dataset.e && (tmr || sec > 0); d.style.borderColor = on ? 'var(--accent)' : ''; d.style.boxShadow = on ? '0 0 0 3px color-mix(in srgb,var(--accent) 25%,transparent)' : ''; }); };
+  go.onclick = () => { if (tmr) { clearInterval(tmr); tmr = null; go.textContent = '▶ Resume'; } else { tmr = setInterval(() => { if (!document.body.contains(tm)) { clearInterval(tmr); return; } sec++; paint(); }, 1000); go.textContent = '⏸ Pause'; } paint(); };
+  $('#trs').onclick = () => { clearInterval(tmr); tmr = null; sec = 0; go.textContent = '▶ Start'; paint(); };
+  paint(); document.title = 'Session plan · C Quest';
+}
 function cheatPage() { main.innerHTML = CHEAT; document.title = 'Cheat sheet · C Quest'; }
 
 /* ---------------------------------------------------------------- router */
@@ -208,7 +238,7 @@ function route() {
   const h = (location.hash || '#/start').replace(/^#\/?/, '');
   document.body.classList.remove('navopen');
   const [kind, arg] = h.split('/');
-  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else if (kind === 'glossary') glossaryPage(); else if (kind === 'exam') examPage(); else startPage();
+  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else if (kind === 'glossary') glossaryPage(); else if (kind === 'session') sessionPage(); else if (kind === 'exam') examPage(); else startPage();
   renderNav(kind === 'lesson' ? 'lesson/' + arg : kind || 'start');
   window.scrollTo(0, 0); main.focus({ preventScroll: true });
 }
