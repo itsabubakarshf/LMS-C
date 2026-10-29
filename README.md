@@ -7,7 +7,7 @@ A self-contained learning-management site for teaching C to someone who already 
 
 ## What is inside
 
-* **12 lessons / 115 minutes** (each with key-term definitions, real-life coding examples and two quizzes) — how C runs · Hello World · types & memory · operators & printf · decisions · loops · functions ·
+* **17 lessons** in two tracks — a quick tour (you know most of it from GDScript) and the important C stuff (headers & preprocessor, addresses, structs, pointers, pointer-to-pointer, linked lists) — plus Windows API. Compact mode, sticky jump bar and collapsible key terms/examples/challenges keep pages short. Multi-file labs (tabs for .c/.h) teach real header usage. (Original: **12 lessons / 115 minutes** (each with key-term definitions, real-life coding examples and two quizzes) — how C runs · Hello World · types & memory · operators & printf · decisions · loops · functions ·
   arrays & strings · **pointers** · structs & heap · **first Windows API calls** · wrap-up, homework and roadmap.
 * **A built-in C "compiler"** (`js/cinterp.js`) that runs in the browser. It has a real byte-addressable memory, so `sizeof`,
   pointers, overflow, uninitialised variables (`0xCC`), `malloc`/`free` (with leak detection), NULL-pointer crashes and

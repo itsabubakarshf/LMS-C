@@ -262,3 +262,36 @@ input[type=range]{accent-color:var(--accent)}
 .q .qcode{font-size:13px}
 
 .widget pre,.example pre{overflow:auto}
+
+.tabs{display:flex;gap:4px;margin:12px 18px -1px;position:relative;z-index:1;flex-wrap:wrap}.tabs .tab{background:var(--panel2);border:1px solid var(--line);border-bottom:0;border-radius:8px 8px 0 0;padding:5px 14px;font:13px var(--mono);color:var(--muted)}.tabs .tab.on{background:var(--code-bg);color:var(--ink);font-weight:700;border-color:var(--accent)}
+.tabs+.editor{margin-top:0;border-top-left-radius:0}
+
+/* ---- compact / less verbose ---- */
+body{font-size:15.5px;line-height:1.55}
+h2{font-size:1.25rem;margin:1.6em 0 .4em}
+.card{padding:14px 16px;margin:12px 0}
+.lhead .crumbs{font-size:12px;color:var(--muted);letter-spacing:.02em}
+.lhead h1{font-size:1.9rem;margin:.1em 0 .1em}
+.lhead .sub{margin:0 0 10px;color:var(--ink);font-size:1.02rem}
+.skim{background:var(--amber-soft);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);border-radius:10px;padding:8px 14px;margin:8px 0;font-size:14px}
+.jump{position:sticky;top:56px;z-index:12;display:flex;gap:6px;overflow-x:auto;padding:8px 0;margin:6px 0 2px;background:var(--bg);scrollbar-width:thin}
+.jump .pill{flex:none;text-decoration:none;font-size:12.5px;padding:4px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--ink);white-space:nowrap}
+.jump .pill:hover{border-color:var(--accent);background:var(--accent-soft)}
+details.fold{background:var(--panel);border:1px solid var(--line);border-radius:12px;margin:12px 0}
+details.fold>summary{cursor:pointer;padding:10px 16px;font-weight:600;font-size:14.5px;list-style:none;display:flex;gap:8px;align-items:center;border-radius:12px}
+details.fold>summary::-webkit-details-marker{display:none}
+details.fold>summary:before{content:"▸";color:var(--accent);transition:transform .15s;display:inline-block}
+details.fold[open]>summary:before{transform:rotate(90deg)}
+details.fold>summary:hover{background:var(--panel2)}
+details.fold .foldbody{padding:4px 16px 14px}
+details.fold .foldbody>.defs>h2,details.fold .foldbody>.quiz>h2{display:none}
+details.fold .example,details.fold .quiz,details.fold .defs{margin:0}
+details.fold .foldbody>.example>h2{display:none}
+.lab,.widget{margin:16px 0}
+.callout{padding:10px 14px;margin:12px 0}
+body.fast .callout.real{display:none}
+body.fast .lead{font-size:1rem}
+.sub .muted{font-size:.85em}
+#nav h6 .subh{text-transform:none;letter-spacing:0;font-weight:400;font-size:11px}
+.cmpt td:nth-child(2) code,.cmpt td:nth-child(3) code{white-space:pre-wrap;background:transparent;padding:0;font-size:12.5px}
+@media (max-width:980px){.jump{top:56px}}

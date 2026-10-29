@@ -12,6 +12,7 @@ const isDone = id => store.get('lesson.' + id) === '1';
 function setTheme(t) { document.documentElement.dataset.theme = t; store.set('theme', t); }
 setTheme(store.get('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
 $('#themeBtn').onclick = () => setTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+const ft = $('#fastToggle'); ft.checked = store.get('fast') !== '0'; document.body.classList.toggle('fast', ft.checked); ft.onchange = () => { document.body.classList.toggle('fast', ft.checked); store.set('fast', ft.checked ? '1' : '0'); };
 const tt = $('#tutorToggle');
 tt.checked = store.get('tutor') === '1'; document.body.classList.toggle('tutor', tt.checked);
 tt.onchange = () => { document.body.classList.toggle('tutor', tt.checked); store.set('tutor', tt.checked ? '1' : '0'); };
@@ -23,14 +24,26 @@ function toast(msg) { const t = el('div', 'toast', msg); document.body.appendChi
 Lab.create.onDone = () => toast('🎉 Task complete! Nice work.');
 
 /* ---------------------------------------------------------------- nav + progress */
+const TRACKS = [
+  ['⚡ Quick tour', 'you already know most of this', ['how', 'hello', 'types', 'ops', 'if', 'loops', 'func']],
+  ['🔥 The important C stuff', 'where C really differs', ['headers', 'arrays', 'addr', 'ptr', 'structs', 'struct', 'dptr', 'list']],
+  ['🪟 Windows', '', ['win']],
+  ['🏁 Wrap-up', '', ['done']],
+];
+const SKIM = ['ops', 'if', 'loops'];
 function renderNav(route) {
   const doneCount = LESSONS.filter(l => isDone(l.id)).length;
   const doneMin = LESSONS.filter(l => isDone(l.id)).reduce((a, l) => a + l.min, 0);
   $('#progBar').style.width = (doneCount / LESSONS.length * 100) + '%';
-  $('#progTxt').textContent = doneCount + ' / ' + LESSONS.length + ' · ' + doneMin + '/' + TOTAL_MIN + ' min';
-  let h = '<a href="#/start" class="' + (route === 'start' ? 'on' : '') + '"><span class="num">★</span>Start here</a><h6>Lessons · ' + TOTAL_MIN + ' minutes</h6>';
-  LESSONS.forEach((l, i) => { h += '<a href="#/lesson/' + l.id + '" class="' + (route === 'lesson/' + l.id ? 'on ' : '') + (isDone(l.id) ? 'done' : '') + '"><span class="num">' + (isDone(l.id) ? '✓' : i + 1) + '</span>' + esc(l.title) + '<span class="min">' + l.min + '′</span></a>'; });
-  h += '<h6>Tools</h6><a href="#/play" class="' + (route === 'play' ? 'on' : '') + '"><span class="num">⌨</span>Playground</a><a href="#/cheat" class="' + (route === 'cheat' ? 'on' : '') + '"><span class="num">📋</span>Cheat sheet</a><a href="#/session" class="' + (route === 'session' ? 'on' : '') + '"><span class="num">⏱</span>1-hour session plan</a><a href="#/glossary" class="' + (route === 'glossary' ? 'on' : '') + '"><span class="num">📖</span>Glossary</a><a href="#/exam" class="' + (route === 'exam' ? 'on' : '') + '"><span class="num">🎓</span>Final exam' + (store.get('exam.best') ? ' · best ' + store.get('exam.best') + '%' : '') + '</a>';
+  $('#progTxt').textContent = doneCount + ' / ' + LESSONS.length + ' lessons';
+  const A = (href, on, num, label, extra) => '<a href="' + href + '" class="' + on + '"><span class="num">' + num + '</span>' + label + (extra || '') + '</a>';
+  let h = A('#/start', route === 'start' ? 'on' : '', '★', 'Start here') + A('#/gd2c', route === 'gd2c' ? 'on' : '', '⇄', 'GDScript → C cheat sheet');
+  TRACKS.forEach(([name, sub, ids]) => {
+    h += '<h6>' + name + (sub ? ' <span class="subh">· ' + sub + '</span>' : '') + '</h6>';
+    ids.forEach(id => { const i = LESSONS.findIndex(l => l.id === id); if (i < 0) return; const l = LESSONS[i];
+      h += A('#/lesson/' + l.id, (route === 'lesson/' + l.id ? 'on ' : '') + (isDone(l.id) ? 'done' : ''), isDone(l.id) ? '✓' : i + 1, esc(l.title), '<span class="min">' + (SKIM.includes(l.id) ? '⚡ ' : '') + l.min + '′</span>'); });
+  });
+  h += '<h6>Tools</h6>' + A('#/play', route === 'play' ? 'on' : '', '⌨', 'Playground') + A('#/cheat', route === 'cheat' ? 'on' : '', '📋', 'C cheat sheet') + A('#/glossary', route === 'glossary' ? 'on' : '', '📖', 'Glossary') + A('#/exam', route === 'exam' ? 'on' : '', '🎓', 'Final exam' + (store.get('exam.best') ? ' · ' + store.get('exam.best') + '%' : '')) + A('#/session', route === 'session' ? 'on' : '', '⏱', '1-hour session plan');
   h += '<h6>Course</h6><a href="#" id="resetAll" style="color:var(--muted)"><span class="num">↺</span>Reset my progress</a>';
   nav.innerHTML = h;
   const r = $('#resetAll'); if (r) r.onclick = e => { e.preventDefault(); if (confirm('Erase all progress, quiz answers and saved code on this browser?')) { try { Object.keys(localStorage).filter(k => k.startsWith('cq.')).forEach(k => localStorage.removeItem(k)); } catch (_) {} location.hash = '#/start'; location.reload(); } };
@@ -76,6 +89,11 @@ function exampleBlock(b) {
   return wrap;
 }
 
+function fold(summary, node, open) {
+  const d = el('details', 'fold'); if (open) d.open = true;
+  d.appendChild(el('summary', '', summary)); const body = el('div', 'foldbody'); body.appendChild(node); d.appendChild(body); return d;
+}
+
 function renderBlock(lesson, b, idx) {
   switch (b.t) {
     case 'html': return el('div', 'html', b.h);
@@ -90,9 +108,12 @@ function renderBlock(lesson, b, idx) {
     }
     case 'widget': return Widgets[b.w]();
     case 'lab': return Lab.create(b);
-    case 'quiz': return quizBlock(lesson, b.qs, idx, b.title);
-    case 'defs': return defsBlock(b.defs, b.title);
-    case 'example': return exampleBlock(b);
+    case 'quiz': {
+      const q = quizBlock(lesson, b.qs, idx, b.title);
+      return b.title && /Challenge/.test(b.title) ? fold('🔥 Challenge round <span class="muted">· ' + b.qs.length + ' harder questions</span>', q, false) : q;
+    }
+    case 'defs': return fold('📖 Key terms <span class="muted">· ' + b.defs.length + ' definitions</span>', defsBlock(b.defs, ''), false);
+    case 'example': return fold('🌍 Example: ' + esc(b.title) + ' <span class="muted">· run it, tweak it</span>', exampleBlock(b), false);
   }
   return el('div');
 }
@@ -101,14 +122,25 @@ function renderBlock(lesson, b, idx) {
 function lessonPage(id) {
   const i = LESSONS.findIndex(l => l.id === id); if (i < 0) return startPage();
   const l = LESSONS[i];
+  const nL = l.blocks.filter(b => b.t === 'lab').length, nQ = l.blocks.filter(b => b.t === 'quiz').reduce((a, q) => a + q.qs.length, 0);
   main.innerHTML = '';
-  main.appendChild(el('div', '', '<div class="muted small">Lesson ' + (i + 1) + ' of ' + LESSONS.length + '</div><h1>' + l.icon + ' ' + esc(l.title) + '</h1><p class="lead" style="margin-top:0">' + esc(l.sub) + '</p>' +
-    '<div class="meta"><span class="chip">⏱ ' + l.min + ' min</span><span class="chip">🧪 ' + l.blocks.filter(b => b.t === 'lab').length + ' labs</span><span class="chip">🧠 quiz</span></div>' +
-    '<div class="card"><b>By the end you can:</b><ul class="goals">' + l.goals.map(g => '<li>' + esc(g) + '</li>').join('') + '</ul></div>'));
-  l.blocks.forEach((b, k) => main.appendChild(renderBlock(l, b, k)));
+  const tr = TRACKS.find(t => t[2].includes(l.id));
+  main.appendChild(el('div', 'lhead', '<div class="crumbs">Lesson ' + (i + 1) + ' of ' + LESSONS.length + (tr ? ' · ' + tr[0] : '') + '</div><h1>' + l.icon + ' ' + esc(l.title) + '</h1><p class="sub">' + esc(l.sub) + ' <span class="muted">· ' + l.min + ' min · ' + nL + ' tasks · ' + nQ + ' questions</span></p>'));
+  if (SKIM.includes(l.id)) main.appendChild(el('div', 'skim', '⚡ <b>Skim lesson.</b> You know this from GDScript — read the <i>GDScript vs C</i> box for the syntax differences, do the lab, move on.'));
+  const jump = el('div', 'jump'); main.appendChild(jump);
+  main.appendChild(fold('🎯 What you will learn', el('ul', 'goals', l.goals.map(g => '<li>' + esc(g) + '</li>').join('')), false));
+  const secs = [];
+  l.blocks.forEach((b, k) => { const node = renderBlock(l, b, k); main.appendChild(node);
+    let label = null, icon = '';
+    if (b.t === 'widget') { const hd = node.querySelector('header span'); label = hd ? hd.textContent : null; icon = ''; }
+    else if (b.t === 'lab') { label = '🧪 ' + (b.title || 'Task'); }
+    else if (b.t === 'quiz' && !(b.title && /Challenge/.test(b.title))) label = '🧠 Quiz';
+    if (label) { const id = 'sec' + k; node.id = id; secs.push([id, label]); } });
+  secs.slice(0, 14).forEach(([sid, label]) => { const a = el('a', 'pill', esc(label.length > 34 ? label.slice(0, 32) + '…' : label)); a.href = '#'; a.onclick = e => { e.preventDefault(); const t = document.getElementById(sid); if (t) { const y = t.getBoundingClientRect().top + window.scrollY - 118; window.scrollTo({ top: y, behavior: 'smooth' }); } }; jump.appendChild(a); });
+  if (!secs.length) jump.remove();
   const fin = el('div', 'finish');
   const btn = el('button', 'btn primary'); const lab = el('span', 'muted');
-  const paint = () => { const d = isDone(l.id); btn.textContent = d ? '✓ Completed — undo' : '✔ Mark lesson complete'; btn.className = 'btn ' + (d ? '' : 'primary'); lab.textContent = d ? 'Great job!' : 'When you finish the labs and the quiz.'; };
+  const paint = () => { const d = isDone(l.id); btn.textContent = d ? '✓ Completed — undo' : '✔ Mark lesson complete'; btn.className = 'btn ' + (d ? '' : 'primary'); lab.textContent = d ? 'Great job!' : 'When you finish the tasks and the quiz.'; };
   btn.onclick = () => { store.set('lesson.' + l.id, isDone(l.id) ? '0' : '1'); paint(); renderNav('lesson/' + l.id); if (isDone(l.id)) toast('✅ Lesson ' + (i + 1) + ' complete!'); };
   paint(); fin.append(btn, lab); main.appendChild(fin);
   const pg = el('div', 'pager');
@@ -120,34 +152,50 @@ function lessonPage(id) {
 
 function startPage() {
   main.innerHTML = '';
-  const segs = LESSONS.map(l => '<a href="#/lesson/' + l.id + '" style="flex:' + l.min + '" title="' + esc(l.title) + ' · ' + l.min + ' min">' + l.icon + '<span>' + l.min + '′</span></a>').join('');
+  const tmin = ids => ids.reduce((a, id) => a + ((LESSONS.find(l => l.id === id) || { min: 0 }).min), 0);
+  const trackCard = (t, i) => '<a class="lcard" href="#/lesson/' + t[2][0] + '"><div class="em">' + t[0].split(' ')[0] + '</div><b>' + t[0].replace(/^\S+\s/, '') + '</b><span>' + (t[1] || '') + '</span><span class="small"> ' + t[2].length + ' lesson' + (t[2].length > 1 ? 's' : '') + ' · ~' + tmin(t[2]) + ' min</span></a>';
   main.appendChild(el('div', '', `
-  <div class="hero"><div class="muted small">A 2-hour hands-on course · no videos, no installs</div>
-  <h1>Learn C — then talk to Windows.</h1>
-  <p class="lead">You make games in GDScript. This course shows what is going on underneath: memory, pointers, and the Windows API that every Windows program is built on. Every lesson has a real-life picture, a diagram you can play with, and a <b>built-in C compiler</b> that runs right here in the page.</p></div>
-  <div class="timeline" aria-label="Two-hour timeline">${segs}</div>
-  <p class="muted small" style="margin-top:-6px">The 12 lessons, drawn to scale (${TOTAL_MIN} minutes in total). Click a block to jump to it.</p>
-  <div class="grid2" style="margin-top:20px">
-    <div class="card" style="margin:0"><h3 style="margin-top:0">🧭 How a lesson works</h3><ol class="goals"><li>Read the short idea and the <b>real-life picture</b>.</li><li>Play with the <b>diagram</b> — click, drag, press run.</li><li>Open the <b>lab</b>: edit real C, press <kbd>Compile &amp; Run</kbd> (or <kbd>Ctrl</kbd>+<kbd>Enter</kbd>).</li><li>Press <b>Step through</b> to watch variables and memory change line by line.</li><li>Answer the quick check, then mark the lesson complete.</li></ol></div>
-    <div class="card" style="margin:0"><h3 style="margin-top:0">🔬 About the built-in compiler</h3><p class="small">It is a small C interpreter with a real byte-addressable memory, so <code>sizeof</code>, pointers, overflow, uninitialised variables, <code>malloc</code>/<code>free</code> and crashes behave like real C on 64-bit Windows. It also simulates a few Win32 functions (MessageBox, files, time, heap). It is a learning tool — for real projects you will use Visual Studio or MinGW-w64 (next section).</p></div>
-  </div>
-  <h2>🧰 Set up a real compiler (do this at home)</h2>
-  <div class="grid2">
-    <div class="card" style="margin:0"><h3 style="margin-top:0">Option A — Visual Studio Community</h3><ol class="goals small"><li>Download <i>Visual Studio Community</i> (free) from Microsoft.</li><li>In the installer tick <b>“Desktop development with C++”</b>.</li><li>Create a <b>Console App</b> project, rename the file to <code>main.c</code>.</li><li>Press <kbd>Ctrl</kbd>+<kbd>F5</kbd> to build and run.</li></ol><p class="small muted">Best debugger; ideal for the Windows API.</p></div>
-    <div class="card" style="margin:0"><h3 style="margin-top:0">Option B — MinGW-w64 (gcc)</h3><ol class="goals small"><li>Install MSYS2 and then <code>pacman -S mingw-w64-ucrt-x86_64-gcc</code>.</li><li>Open the UCRT64 terminal in your folder.</li><li><code>gcc main.c -o main.exe</code></li><li>Run <code>./main.exe</code>. For windows apps add <code>-mwindows</code>.</li></ol><p class="small muted">Lightweight; works well with VS Code.</p></div>
-  </div>
-  <div class="callout tutor"><div class="ico">🎓</div><div><h4>Tutor guide: running the first session</h4>
-    <p><b>1. Get to know the student (10 min)</b> — what do they want to build (game, tool, or understanding Windows)? Why the Windows API (windows &amp; buttons, files, memory, processes)? Agree a weekday time slot and time zone.</p>
-    <p><b>2. Tools (15 min)</b> — Visual Studio or MinGW; get hello world compiling; practise reading compiler errors (a new skill coming from GDScript).</p>
-    <p><b>3. Core C (30 min)</b> — types and sizes (his x64 helps), functions and main, no garbage collector, first taste of pointers as memory addresses.</p>
-    <p><b>4. Quick Windows win (10 min)</b> — <code>MessageBoxA</code>: a popup keeps motivation high. Then show the roadmap.</p>
-    <p><b>How to teach:</b> short explanation → he types code. Ask him to share his screen. Small weekly homework. This course covers steps 2–4 in one 2-hour sitting; the lessons’ tutor notes give a minute plan.</p></div></div>
-  <h2>📚 All lessons</h2><div class="lcards"></div>`));
-  const lc = main.querySelector('.lcards');
-  LESSONS.forEach((l, i) => lc.appendChild(el('a', 'lcard' + (isDone(l.id) ? ' done' : ''), '<div class="em">' + l.icon + '</div><b>' + (i + 1) + '. ' + esc(l.title) + '</b><span>' + esc(l.sub) + ' · ' + l.min + ' min' + (isDone(l.id) ? ' · ✓' : '') + '</span>')));
-  main.querySelectorAll('.lcard').forEach((a, i) => a.href = '#/lesson/' + LESSONS[i].id);
-  main.appendChild(el('div', 'finish', '<a class="btn primary" href="#/lesson/' + LESSONS[0].id + '">Start lesson 1 →</a><span class="muted">First stop: how a C program actually runs.</span>'));
+  <div class="hero"><h1>Learn C — then talk to Windows.</h1>
+  <p class="lead">You already program in GDScript, so this course skips the “what is a variable” part. It shows what C does differently — memory, pointers, headers — and ends with real Windows API calls. Every lesson is: a short idea → a diagram you can play with → tasks with hints and solutions.</p>
+  <div class="row"><a class="btn primary" href="#/lesson/how">Start the quick tour →</a><a class="btn" href="#/lesson/addr">Jump to pointers</a><a class="btn" href="#/gd2c">⇄ GDScript → C cheat sheet</a></div></div>
+  <h2>Your path</h2><div class="lcards">${TRACKS.map(trackCard).join('')}</div>
+  <h2>Tools</h2><div class="row"><a class="btn" href="#/play">⌨ Playground</a><a class="btn" href="#/cheat">📋 C cheat sheet</a><a class="btn" href="#/glossary">📖 Glossary</a><a class="btn" href="#/exam">🎓 Final exam</a><a class="btn" href="#/session">⏱ 1-hour session plan</a></div>
+  <div class="callout tutor"><div class="ico">🎓</div><div><h4>Tutor guide: first session</h4>
+    <p><b>1. Get to know him (10 min)</b> — what he wants to build; why the Windows API; agree weekday time slots.</p>
+    <p><b>2. Tools (15 min)</b> — Visual Studio or MinGW; hello world; read compiler errors.</p>
+    <p><b>3. Core C (30 min)</b> — types and sizes, main, no garbage collector, pointers as addresses.</p>
+    <p><b>4. Windows win (10 min)</b> — <code>MessageBoxA</code>, then the roadmap. Short explanation → he types; he shares his screen.</p></div></div>`));
+  const setup = el('div', '', '<div class="grid2"><div class="card" style="margin:0"><h3 style="margin-top:0">Visual Studio Community</h3><ol class="goals small"><li>Install it and tick <b>“Desktop development with C++”</b>.</li><li>New <b>Console App</b>, rename the file to <code>main.c</code>.</li><li><kbd>Ctrl</kbd>+<kbd>F5</kbd> builds and runs.</li></ol></div><div class="card" style="margin:0"><h3 style="margin-top:0">MinGW-w64 (gcc)</h3><ol class="goals small"><li>Install MSYS2, then <code>pacman -S mingw-w64-ucrt-x86_64-gcc</code>.</li><li><code>gcc main.c -o main.exe</code></li><li><code>./main.exe</code></li></ol></div></div>');
+  main.appendChild(fold('🧰 Set up a real compiler at home', setup, false));
+  const all = el('div', 'lcards'); LESSONS.forEach((l, i) => { const a = el('a', 'lcard' + (isDone(l.id) ? ' done' : ''), '<div class="em">' + l.icon + '</div><b>' + (i + 1) + '. ' + esc(l.title) + '</b><span>' + esc(l.sub) + ' · ' + l.min + ' min' + (isDone(l.id) ? ' · ✓' : '') + '</span>'); a.href = '#/lesson/' + l.id; all.appendChild(a); });
+  main.appendChild(fold('📚 All ' + LESSONS.length + ' lessons (' + TOTAL_MIN + ' min in total)', all, false));
   document.title = 'C Quest — Learn C and the Windows API';
+}
+
+function gd2cPage() {
+  const R = [
+    ['Variable', 'var hp = 100', 'int hp = 100;', 'Type is mandatory and fixed.'],
+    ['Constant', 'const MAX = 10', '#define MAX 10', 'or <code>const int MAX = 10;</code>'],
+    ['Print', 'print("hp: ", hp)', 'printf("hp: %d\\n", hp);', 'Format specifiers; you add <code>\\n</code>.'],
+    ['String', 'var s = "Hi"', 'char s[] = "Hi";', 'An array of chars ending with <code>\\0</code>. No + concatenation, no ==.'],
+    ['if / elif', 'if a: … elif b: … else: …', 'if (a) { … } else if (b) { … } else { … }', 'Parentheses and braces.'],
+    ['for loop', 'for i in range(5):', 'for (int i = 0; i < 5; i++) { }', 'Start; condition; step.'],
+    ['match', 'match x: 1: …', 'switch (x) { case 1: …; break; }', 'Needs <code>break</code>.'],
+    ['Function', 'func add(a, b): return a + b', 'int add(int a, int b) { return a + b; }', 'Types everywhere; declare before use (prototype).'],
+    ['Array', 'var a = [1, 2, 3]; a.append(4)', 'int a[3] = {1, 2, 3};', 'Fixed size, no bounds check. Growable = malloc/realloc.'],
+    ['Dictionary', 'var d = {"a": 1}', '— none —', 'You build it (struct array / hash table).'],
+    ['Class / Node', 'class Player: var hp', 'typedef struct { int hp; } Player;', 'Data only. Functions are separate.'],
+    ['null', 'null', 'NULL', 'Only for pointers; dereferencing it crashes.'],
+    ['Signal / callable', 'signal hit; connect(f)', 'a function pointer / callback', 'e.g. <code>WndProc</code> in Win32.'],
+    ['import', 'preload("res://u.gd")', '#include "u.h"', 'Text pasting + a linker step.'],
+    ['Objects are references', 'automatic', 'pointers: <code>Player *p = &amp;hero;</code>', 'You choose copy or pointer every time.'],
+    ['Memory', 'reference-counted', 'malloc / free by hand', 'Forget free → leak. Use after free → bug.'],
+    ['Errors', 'engine shows a message', 'return codes, <code>GetLastError()</code>, crashes', 'No exceptions in C.'],
+  ];
+  main.innerHTML = '<h1>⇄ GDScript → C cheat sheet</h1><p class="lead">The 17 things that map directly — and the 5 that will surprise you.</p>' +
+    '<div class="tablewrap"><table class="t cmpt"><tr><th>Idea</th><th>GDScript</th><th>C</th><th>Note</th></tr>' + R.map(r => '<tr><td><b>' + r[0] + '</b></td><td><code>' + esc(r[1]) + '</code></td><td><code>' + (r[2].includes('<code>') ? r[2] : esc(r[2])) + '</code></td><td class="small muted">' + r[3] + '</td></tr>').join('') + '</table></div>' +
+    '<h2>The 5 big surprises</h2><div class="grid2">' + [['1 · Compile + link', 'Errors come from two tools before the program ever runs.', 'how'], ['2 · No safety net', 'Out-of-range index, bad pointer, overflow: C says nothing.', 'types'], ['3 · Manual memory', 'You malloc and free. The heap is yours.', 'struct'], ['4 · Strings are char arrays', 'Ending in <code>\\0</code>. Compare with strcmp.', 'arrays'], ['5 · Pointers everywhere', 'Addresses, *, &, ->, **, linked lists.', 'addr']].map(x => '<a class="lcard" href="#/lesson/' + x[2] + '"><b>' + x[0] + '</b><span>' + x[1] + '</span></a>').join('') + '</div>';
+  document.title = 'GDScript → C · C Quest';
 }
 
 function playPage() {
@@ -238,7 +286,7 @@ function route() {
   const h = (location.hash || '#/start').replace(/^#\/?/, '');
   document.body.classList.remove('navopen');
   const [kind, arg] = h.split('/');
-  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else if (kind === 'glossary') glossaryPage(); else if (kind === 'session') sessionPage(); else if (kind === 'exam') examPage(); else startPage();
+  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else if (kind === 'glossary') glossaryPage(); else if (kind === 'session') sessionPage(); else if (kind === 'gd2c') gd2cPage(); else if (kind === 'exam') examPage(); else startPage();
   renderNav(kind === 'lesson' ? 'lesson/' + arg : kind || 'start');
   window.scrollTo(0, 0); main.focus({ preventScroll: true });
 }

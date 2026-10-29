@@ -19,7 +19,7 @@ const HEAP_BASE = 0x10000, HEAP_END = 0x80000;
 const MAX_TRACE = 4000;
 
 class CError extends Error {
-  constructor(msg, line, col, kind) { super(msg); this.line = line || 0; this.col = col || 0; this.kind = kind || 'error'; }
+  constructor(msg, line, col, kind, file) { super(msg); this.line = line || 0; this.col = col || 0; this.kind = kind || 'error'; this.file = file || ''; }
 }
 class RuntimeError extends Error {
   constructor(msg, line) { super(msg); this.line = line || 0; }
@@ -97,11 +97,11 @@ const OPS = ['<<=', '>>=', '...', '->', '++', '--', '<<', '>>', '<=', '>=', '=='
   '&=', '|=', '^=', '+', '-', '*', '/', '%', '=', '<', '>', '!', '~', '&', '|', '^', '?', ':', ';', ',', '.', '(', ')', '[', ']', '{', '}'];
 const NUM_RE = /(0[xX][0-9a-fA-F]+|0[bB][01]+|(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?)([uUlLfF]*)/y;
 
-function lex(src, startLine, internal) {
+function lex(src, startLine, internal, file) {
   const toks = []; let i = 0, line = startLine || 1, lineStart = 0, atLineStart = true;
   const n = src.length;
   const push = (t, v, start, extra) => {
-    toks.push(Object.assign({ t, v, line, col: start - lineStart + 1, len: i - start, text: src.slice(start, i), internal: !!internal }, extra));
+    toks.push(Object.assign({ t, v, line, col: start - lineStart + 1, len: i - start, text: src.slice(start, i), internal: !!internal, file }, extra));
     atLineStart = false;
   };
   function escape() { // i points after the backslash
@@ -136,7 +136,7 @@ function lex(src, startLine, internal) {
         if (src[i] === '/' && src[i + 1] === '*') { i += 2; while (i < n && !(src[i] === '*' && src[i + 1] === '/')) i++; i += 2; continue; }
         text += src[i++];
       }
-      toks.push({ t: 'dir', text: text.trim(), line: startL, col: 1, internal: !!internal });
+      toks.push({ t: 'dir', text: text.trim(), line: startL, col: 1, internal: !!internal, file });
       continue;
     }
     const start = i;
@@ -230,6 +230,8 @@ function expandTokens(list, defines, hide) {
   const out = [];
   for (let i = 0; i < list.length; i++) {
     const t = list[i];
+    if (t.t === 'id' && t.v === '__LINE__') { out.push(Object.assign({}, t, { t: 'num', v: t.line, ty: 'int', text: String(t.line) })); continue; }
+    if (t.t === 'id' && t.v === '__FILE__') { out.push(Object.assign({}, t, { t: 'str', v: t.file || 'main.c', text: '"' + (t.file || 'main.c') + '"' })); continue; }
     if (t.t === 'id' && defines.has(t.v) && !hide.has(t.v)) {
       const m = defines.get(t.v);
       const h2 = new Set(hide); h2.add(t.v);
@@ -262,8 +264,8 @@ function expandTokens(list, defines, hide) {
   return out;
 }
 
-function preprocess(src, state, internal) {
-  const raw = lex(src, 1, internal);
+function preprocess(src, state, internal, file) {
+  const raw = lex(src, 1, internal, file || 'main.c');
   const out = []; let run = []; const cond = [];
   const active = () => cond.every(c => c.on);
   const flush = () => { if (run.length) { out.push(...expandTokens(run, state.defines, new Set())); run = []; } };
@@ -289,15 +291,20 @@ function preprocess(src, state, internal) {
       const im = /^[<"]([^>"]+)[>"]$/.exec(rest);
       if (!im) throw new CError('#include expects "FILENAME" or <FILENAME>', tk.line);
       const h = im[1].toLowerCase();
-      if (!(h in HEADERS)) throw new CError(im[1] + ': No such file or directory', tk.line, 10, 'fatal error');
-      if (!state.included.has(h)) { state.included.add(h); out.push(...preprocess(HEADERS[h], state, true)); }
+      const virt = state.files && Object.prototype.hasOwnProperty.call(state.files, im[1]);
+      state.log.push(im[1]);
+      if (virt) {
+        if (!state.once.has(im[1])) out.push(...preprocess(state.files[im[1]], state, false, im[1]));
+      } else if (!(h in HEADERS)) throw new CError(im[1] + ': No such file or directory' + (rest[0] === '"' ? ' (is it one of this lab\'s files?)' : ''), tk.line, 10, 'fatal error', file || 'main.c');
+      else if (!state.included.has(h)) { state.included.add(h); out.push(...preprocess(HEADERS[h], state, true, h)); }
     } else if (name === 'define') {
       const dm = /^([A-Za-z_]\w*)(\(([^)]*)\))?\s*(.*)$/s.exec(rest);
       if (!dm) throw new CError('macro names must be identifiers', tk.line);
       const params = dm[2] !== undefined ? dm[3].split(',').map(s => s.trim()).filter(Boolean) : null;
-      state.defines.set(dm[1], { params, body: lex(dm[4], tk.line, internal) });
+      state.defines.set(dm[1], { params, body: lex(dm[4], tk.line, internal, file || 'main.c') });
     } else if (name === 'undef') state.defines.delete(rest);
     else if (name === 'error') throw new CError('#error ' + rest, tk.line);
+    else if (name === 'pragma' && rest === 'once') state.once.add(file || 'main.c');
     else if (name === 'pragma' || name === 'line' || name === '') { /* ignore */ }
     else throw new CError('invalid preprocessing directive #' + name, tk.line);
   }
@@ -306,6 +313,25 @@ function preprocess(src, state, internal) {
   return out;
 }
 
+function newState(opts) {
+  const st = { defines: new Map(), included: new Set(), files: (opts && opts.files) || {}, once: new Set(), log: [] };
+  const pre = Object.assign({ _WIN32: 1, __STDC__: 1 }, (opts && opts.defines) || {});
+  for (const k of Object.keys(pre)) st.defines.set(k, { params: null, body: lex(String(pre[k]), 1, true, 'predefined') });
+  return st;
+}
+function detok(tokens) {
+  let out = '', line = null, prev = null;
+  for (const t of tokens) {
+    if (line !== null && (t.line !== line)) { out += '\n'; prev = null; }
+    line = t.line;
+    const x = t.text !== undefined ? t.text : String(t.v);
+    const noSpaceBefore = /^[),;\]\.]$/.test(x) || x === '->' || x === '++' || x === '--';
+    const noSpaceAfter = prev && (/^[(\[\.!~]$/.test(prev) || prev === '->');
+    if (prev !== null && !noSpaceBefore && !noSpaceAfter) out += ' ';
+    out += x; prev = x;
+  }
+  return out;
+}
 /* ----------------------------------------------------------------- parser */
 const BUILTIN_HEADER = {};
 function regHeader(h, names) { for (const n of names.split(/\s+/)) if (n) BUILTIN_HEADER[n] = h; }
@@ -329,7 +355,7 @@ class Parser {
     this.toks = tokens; this.p = 0; this.state = state;
     this.typedefs = new Map(); this.structs = new Map(); this.enums = new Map();
     this.funcs = new Map(); this.globals = new Set(); this.scopes = []; this.warnings = [];
-    this.curFn = null; this.gdecls = [];
+    this.curFn = null; this.gdecls = []; this.calls = []; this.typedefUnit = new Map();
   }
   peek(o) { return this.toks[this.p + (o || 0)] || { t: 'eof', v: 'end of file', line: (this.toks.length ? this.toks[this.toks.length - 1].line : 1), col: 1, len: 0 }; }
   next() { return this.toks[this.p++] || this.peek(); }
@@ -420,7 +446,13 @@ class Parser {
     }
     if (this.isOp('{')) {
       const open = this.next();
-      if (st.fields) throw new CError("redefinition of 'struct " + tag + "'", open.line, open.col);
+      if (st.fields) {
+        if (open.unit !== undefined && st.unit !== undefined && open.unit !== st.unit) {   // same header seen from another .c file: skip the body
+          let d = 1; while (d > 0 && this.peek().t !== 'eof') { const q = this.next(); if (q.t === 'op' && q.v === '{') d++; else if (q.t === 'op' && q.v === '}') d--; }
+          return st;
+        }
+        throw new CError("redefinition of 'struct " + tag + "' (a header included twice? add an include guard: #ifndef / #define / #endif, or #pragma once)", open.line, open.col, 'error', open.file);
+      }
       const fields = [];
       while (!this.acceptOp('}')) {
         const base = this.parseBase().ty;
@@ -432,7 +464,7 @@ class Parser {
         } while (this.acceptOp(','));
         this.expectOp(';');
       }
-      st.fields = fields; layout(st);
+      st.fields = fields; st.unit = open.unit; layout(st);
     }
     return st;
   }
@@ -510,7 +542,9 @@ class Parser {
       do {
         const d = this.parseDeclarator(ty);
         if (!d.name) this.fail('typedef needs a name');
-        this.typedefs.set(d.name, d.ty);
+        const old = this.typedefs.get(d.name);
+        if (old && d.tok.unit !== undefined && this.typedefUnit.get(d.name) !== d.tok.unit && (old.k === 'struct' || old === d.ty)) { /* same typedef from another .c file: keep the first */ }
+        else { this.typedefs.set(d.name, d.ty); this.typedefUnit.set(d.name, d.tok.unit); }
       } while (this.acceptOp(','));
       this.expectOp(';'); return;
     }
@@ -786,6 +820,7 @@ class Parser {
         if (fn && !e.isVar) {
           if (args.length !== fn.params.length) throw new CError("too " + (args.length > fn.params.length ? 'many' : 'few') + " arguments to function '" + e.name + "' (expected " + fn.params.length + ', got ' + args.length + ')', t.line, t.col);
         }
+        if (fn && !e.isVar) this.calls.push({ name: e.name, line: t.line, col: t.col, file: t.file });
         e = { k: 'call', fn: e, args, line: t.line };
       }
       else if (t.v === '.' || t.v === '->') {
@@ -1621,28 +1656,44 @@ const BUILTINS = {
 BUILTINS.MessageBox = BUILTINS.MessageBoxA;
 
 /* -------------------------------------------------------------- public API */
-function compile(source) {
-  const state = { defines: new Map(), included: new Set() };
-  const tokens = preprocess(source, state, false);
-  const parser = new Parser(tokens, state);
-  const prog = parser.parseProgram();
-  for (const [name, fn] of prog.funcs) {
-    if (!fn.body && name !== 'WinMain' && name !== 'main') {
-      /* checked lazily: a prototype that is never called is fine */
-    }
-  }
+function compile(source, opts) {
+  opts = opts || {};
+  const files = opts.files || {};
+  const units = [['main.c', source]].concat(Object.keys(files).filter(n => /\.c$/i.test(n)).map(n => [n, files[n]]));
+  const tokens = []; const included = new Set();
+  units.forEach(([name, text], u) => {
+    const state = newState({ files, defines: opts.defines });
+    const toks = preprocess(text, state, false, name);
+    toks.forEach(t => { t.unit = u; });
+    tokens.push(...toks); state.included.forEach(h => included.add(h));
+  });
+  const parser = new Parser(tokens, { included });
+  let prog;
+  try { prog = parser.parseProgram(); }
+  catch (e) { if (e instanceof CError && !e.file) { const t = parser.toks[Math.min(parser.p, parser.toks.length - 1)] || {}; e.file = t.file && t.file !== 'predefined' && !t.internal ? t.file : 'main.c'; } throw e; }
+  for (const c of parser.calls) { const fn = prog.funcs.get(c.name); if (fn && !fn.body) throw new CError("undefined reference to `" + c.name + "' - it is declared (prototype) but no .c file defines it", c.line, c.col, 'linker error', c.file || 'main.c'); }
   if (!(prog.funcs.get('main') && prog.funcs.get('main').body) && !(prog.funcs.get('WinMain') && prog.funcs.get('WinMain').body)) {
-    throw new CError("undefined reference to 'main' — every C program needs int main(void) { ... }", 0, 0, 'linker error');
+    throw new CError("undefined reference to 'main' — every C program needs int main(void) { ... }", 0, 0, 'linker error', 'main.c');
   }
   return prog;
+}
+
+/* Show what the preprocessor produces (used by the "preprocessor viewer" diagram) */
+function expand(source, opts) {
+  opts = opts || {};
+  try {
+    const state = newState({ files: opts.files, defines: opts.defines });
+    const toks = preprocess(source, state, false, 'main.c');
+    return { ok: true, text: detok(toks.filter(t => !t.internal)), includes: state.log.slice() };
+  } catch (e) { if (e instanceof CError) return { ok: false, error: e.message, line: e.line }; throw e; }
 }
 
 function run(source, opts) {
   opts = Object.assign({ maxSteps: 3000000, trace: true, stdin: '' }, opts || {});
   let prog;
-  try { prog = compile(source); }
+  try { prog = compile(source, opts); }
   catch (e) {
-    if (e instanceof CError) return { ok: false, phase: 'compile', errors: [{ line: e.line, col: e.col, msg: e.message, kind: e.kind }], warnings: [], stdout: '', trace: [], events: [] };
+    if (e instanceof CError) return { ok: false, phase: 'compile', errors: [{ line: e.line, col: e.col, msg: e.message, kind: e.kind, file: e.file }], warnings: [], stdout: '', trace: [], events: [] };
     throw e;
   }
   const m = new Machine(prog, opts);
@@ -1651,6 +1702,6 @@ function run(source, opts) {
   return res;
 }
 
-const api = { run, compile, typeStr, CError, version: '1.0' };
+const api = { run, compile, expand, typeStr, CError, version: '1.1' };
 if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.CInterp = api;
 })(typeof window !== 'undefined' ? window : globalThis);

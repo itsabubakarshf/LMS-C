@@ -65,9 +65,13 @@ function winbox(ev) {
 function create(cfg) {
   const root = el('div', 'lab');
   const savedKey = 'code.' + cfg.id;
-  const initial = cfg.code.replace(/^\n/, '');
+  const multi = Array.isArray(cfg.files) && cfg.files.length > 1;
+  const initial = (cfg.code || (cfg.files && cfg.files[0].code) || '').replace(/^\n/, '');
   let code = store.get(savedKey);
   if (code === null || cfg.forceInitial) code = initial;
+  const files = multi ? cfg.files.map(f => ({ name: f.name, init: f.code.replace(/^\n/, ''), text: store.get('code.' + cfg.id + '.' + f.name) })) : null;
+  if (multi) { files.forEach(f => { if (f.text === null || cfg.forceInitial) f.text = f.init; }); code = files[0].text; }
+  let curTab = 0, tabsEl = null;
   let result = null, stepIdx = 0, timer = null;
 
   root.innerHTML = '<div class="lab-head"><span>' + (cfg.icon || '🧪') + '</span><span class="lt"></span><span class="badge"></span></div>';
@@ -87,7 +91,9 @@ function create(cfg) {
   canvas.append(lhs, pre);
   const ta = el('textarea'); ta.spellcheck = false; ta.setAttribute('wrap', 'off'); ta.setAttribute('aria-label', 'C source code');
   ta.setAttribute('autocapitalize', 'off'); ta.setAttribute('autocomplete', 'off');
-  wrap.append(canvas, ta); ed.append(gutter, wrap); root.appendChild(ed);
+  wrap.append(canvas, ta); ed.append(gutter, wrap);
+  if (multi) { tabsEl = el('div', 'tabs'); root.appendChild(tabsEl); }
+  root.appendChild(ed);
 
   let curLine = 0, errLine = 0;
   function paint() {
@@ -105,7 +111,10 @@ function create(cfg) {
   function syncScroll() { canvas.style.transform = 'translate(' + (-ta.scrollLeft) + 'px,' + (-ta.scrollTop) + 'px)'; gutter.scrollTop = ta.scrollTop; }
   ta.value = code;
   ta.addEventListener('scroll', syncScroll);
-  ta.addEventListener('input', () => { store.set(savedKey, ta.value); curLine = errLine = 0; exitStep(); paint(); });
+  ta.addEventListener('input', () => { if (multi) { files[curTab].text = ta.value; store.set(savedKey + '.' + files[curTab].name, ta.value); } else store.set(savedKey, ta.value); curLine = errLine = 0; exitStep(); paint(); });
+  function drawTabs() { if (!multi) return; tabsEl.innerHTML = ''; files.forEach((f, i) => { const b = el('button', 'tab' + (i === curTab ? ' on' : ''), '📄 ' + esc(f.name)); b.onclick = () => switchTab(i); tabsEl.appendChild(b); }); }
+  function switchTab(i) { files[curTab].text = ta.value; curTab = i; ta.value = files[i].text; curLine = errLine = 0; ta.scrollTop = 0; drawTabs(); paint(); }
+  drawTabs();
   ta.addEventListener('keydown', e => {
     if (e.key === 'Tab') {
       e.preventDefault(); const s = ta.selectionStart, en = ta.selectionEnd;
@@ -123,13 +132,17 @@ function create(cfg) {
   const bStep = el('button', 'btn', '👣 Step through');
   const bReset = el('button', 'btn', '↺ Reset code');
   const bHint = el('button', 'btn', '💡 Hint');
-  bar.append(bRun, bStep, bReset); if (cfg.hint) bar.appendChild(bHint);
+  bar.append(bRun); if (!multi && !cfg.noStep) bar.appendChild(bStep); bar.append(bReset); if (cfg.hint) bar.appendChild(bHint);
   const bSol = el('button', 'btn', '👀 Solution'); let mine = null;
   if (cfg.solution) {
     bar.appendChild(bSol);
     bSol.onclick = () => {
       exitStep();
-      if (mine === null) { mine = ta.value; ta.value = cfg.solution.replace(/^\n/, ''); bSol.textContent = '↩ Back to my code'; }
+      if (multi && typeof cfg.solution === 'object') {
+        if (mine === null) { files[curTab].text = ta.value; mine = files.map(f => f.text); files.forEach(f => { if (cfg.solution[f.name] !== undefined) f.text = cfg.solution[f.name].replace(/^\n/, ''); }); bSol.textContent = '↩ Back to my code'; }
+        else { files.forEach((f, i) => { f.text = mine[i]; }); mine = null; bSol.textContent = '👀 Solution'; }
+        ta.value = files[curTab].text;
+      } else if (mine === null) { mine = ta.value; ta.value = cfg.solution.replace(/^\n/, ''); bSol.textContent = '↩ Back to my code'; }
       else { ta.value = mine; mine = null; bSol.textContent = '👀 Solution'; }
       curLine = errLine = 0; paint();
     };
@@ -154,10 +167,11 @@ function create(cfg) {
 
   function writeLine(cls, text) { const s = el('span', cls); s.textContent = text; consoleEl.appendChild(s); consoleEl.appendChild(document.createTextNode('\n')); }
   function showCompile(res, src) {
-    const lines = src.split('\n');
     for (const e of res.errors) {
+      let lines = src.split('\n');
+      if (multi && e.file) { const fi = files.findIndex(f => f.name === e.file); if (fi >= 0) { lines = (fi === curTab ? ta.value : files[fi].text).split('\n'); if (fi !== curTab) switchTab(fi); } }
       const kind = e.kind || 'error';
-      writeLine('errc', 'main.c:' + (e.line || 1) + ':' + (e.col || 1) + ': ' + kind + ': ' + e.msg);
+      writeLine('errc', (e.file || 'main.c') + ':' + (e.line || 1) + ':' + (e.col || 1) + ': ' + kind + ': ' + e.msg);
       if (e.line && lines[e.line - 1] !== undefined) {
         writeLine('dim', String(e.line).padStart(4) + ' | ' + lines[e.line - 1]);
         const sp = document.createElement('span'); sp.className = 'caret'; sp.textContent = '     | ' + ' '.repeat(Math.max(0, (e.col || 1) - 1)) + '^'; consoleEl.appendChild(sp); consoleEl.appendChild(document.createTextNode('\n'));
@@ -172,10 +186,12 @@ function create(cfg) {
 
   function run() {
     exitStep(); consoleEl.innerHTML = ''; desktop.innerHTML = ''; curLine = errLine = 0;
-    const src = ta.value;
+    if (multi) files[curTab].text = ta.value;
+    const src = multi ? files[0].text : ta.value;
+    const fmap = {}; if (multi) files.slice(1).forEach(f => { fmap[f.name] = f.text; });
     const stdin = stdinEl ? stdinEl.value.replace(/\\n/g, '\n') + (stdinEl.value ? '\n' : '') : '';
     let res;
-    try { res = CInterp.run(src, { stdin, trace: true }); } catch (e) { consoleEl.innerHTML = ''; writeLine('errc', 'Internal error in the mini-compiler: ' + e.message); paint(); return; }
+    try { res = CInterp.run(src, { stdin, trace: !multi, files: fmap }); } catch (e) { consoleEl.innerHTML = ''; writeLine('errc', 'Internal error in the mini-compiler: ' + e.message); paint(); return; }
     result = res;
     writeLine('dim', '$ compile main.c … ' + (res.phase === 'compile' ? 'FAILED' : 'ok'));
     if (res.phase === 'compile') { showCompile(res, src); paint(); return; }
@@ -185,7 +201,7 @@ function create(cfg) {
     if (res.debug) writeLine('dim', '[debug output] ' + res.debug.trim());
     if (res.ok === false) {
       writeLine('errc', '\n💥 Program crashed' + (res.line ? ' on line ' + res.line : '') + ': ' + res.error);
-      errLine = res.line || 0;
+      errLine = multi ? 0 : (res.line || 0);
     } else writeLine('okc', '\n[Process finished with exit code ' + res.exit + ']');
     if (res.leaks && res.leaks.length) writeLine('warnc', '⚠ memory leak: ' + res.leaks.length + ' block(s) / ' + res.leaks.reduce((a, b) => a + b.size, 0) + ' bytes were never free()d');
     if (res.files && res.files.length) for (const f of res.files) writeLine('dim', '📄 virtual disk file "' + f.name + '" (' + f.size + ' bytes): ' + JSON.stringify(f.text));
@@ -193,7 +209,7 @@ function create(cfg) {
     consoleEl.scrollTop = consoleEl.scrollHeight;
     let ok = res.ok !== false;
     if (cfg.expect) {
-      let pass = false; try { pass = ok && cfg.expect(res.stdout, res, src); } catch (_) { pass = false; }
+      let pass = false; try { pass = ok && cfg.expect(res.stdout, res, multi ? files.map(f => f.text).join('\n') : src); } catch (_) { pass = false; }
       if (pass) {
         writeLine('okc', '🎉 Task complete!');
         store.set('done.' + cfg.id, '1'); setBadge(true); if (root.Lab_onDone) root.Lab_onDone(cfg.id); if (create.onDone) create.onDone(cfg.id);
@@ -274,7 +290,7 @@ function create(cfg) {
   });
   range.addEventListener('input', () => goStep(+range.value));
   bRun.onclick = run; bStep.onclick = enterStep;
-  bReset.onclick = () => { ta.value = initial; store.set(savedKey, initial); curLine = errLine = 0; exitStep(); consoleEl.innerHTML = ''; desktop.innerHTML = ''; paint(); };
+  bReset.onclick = () => { if (multi) { files.forEach(f => { f.text = f.init; store.set(savedKey + '.' + f.name, f.init); }); ta.value = files[curTab].text; } else { ta.value = initial; store.set(savedKey, initial); } curLine = errLine = 0; exitStep(); consoleEl.innerHTML = ''; desktop.innerHTML = ''; paint(); };
   paint();
   root._lab = { run, setCode(c) { ta.value = c; store.set(savedKey, c); paint(); }, getCode: () => ta.value };
   return root;
