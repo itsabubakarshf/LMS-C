@@ -39,9 +39,9 @@ Widgets are in `js/widgets.js`, the editor/stepper in `js/lab.js`, the C interpr
 ## Tests
 
 ```bash
-node tests/labs.test.js     # compiles every lab's starter + reference solution and runs its checker
-node tests/content.test.js  # runs every example, checks every 'what is printed?' answer, validates all quizzes
-node tests/t1.js            # interpreter smoke tests
+node tests/labs.test.cjs     # compiles every lab's starter + reference solution and runs its checker
+node tests/content.test.cjs  # runs every example, checks every 'what is printed?' answer, validates all quizzes
+node tests/t1.cjs            # interpreter smoke tests
 ```
 
 ## Limits of the mini-compiler
@@ -50,3 +50,10 @@ Supports: int/char/short/long/long long/float/double, pointers, arrays, structs,
 (incl. function-like macros), `#ifdef`, all control flow, recursion, a good part of stdio/stdlib/string/math/ctype and some Win32.
 Not supported: function pointers, `goto`, variadic user functions, a real GUI window. For real projects use Visual Studio
 (“Desktop development with C++”) or MinGW-w64 — the setup steps are on the course start page.
+
+## Login (Vercel only)
+
+`middleware.js` puts a login page in front of the whole site when it is hosted on Vercel — no database. Set these
+environment variables on the project: `AUTH_EMAIL`, `AUTH_PASSWORD`, `AUTH_SECRET` (a long random string that signs the
+session cookie). If any is missing the site refuses to serve (fails closed). Opening `index.html` from disk is not protected.
+Test it with `node tests/auth.test.js`.
