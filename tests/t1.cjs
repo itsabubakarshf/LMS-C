@@ -1,4 +1,4 @@
-const C=require('../js/cinterp.js');
+require('../js/cinterp.js'); const C=global.CInterp;
 function t(name,src,stdin){const r=C.run(src,{stdin});console.log('---',name, r.ok?'':JSON.stringify(r.errors||r.error));console.log(r.stdout);if(r.warnings&&r.warnings.length)console.log('WARN',JSON.stringify(r.warnings));return r}
 t('hello',`#include <stdio.h>
 int main(void){ printf("Hello %d %5.2f %s %c %x\\n", 42, 3.14159, "hi", 'A', 255); return 0; }`);

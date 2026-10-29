@@ -1,6 +1,6 @@
 // Verifies every lab: starter code behaves sensibly, and the reference solution satisfies the lab's own check.
 global.window = global; global.document = { createElement() { return {}; } };
-global.CInterp = require('../js/cinterp.js'); require('../js/lab.js'); require('../js/lessons.js');
+require('../js/cinterp.js'); require('../js/lab.js'); require('../js/lessons.js');
 const { LESSONS, TEMPLATES } = global.COURSE;
 let bad = 0, n = 0;
 for (const l of LESSONS) for (const b of l.blocks) {
