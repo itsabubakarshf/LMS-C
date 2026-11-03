@@ -34,6 +34,12 @@ const EARLY = ['how', 'hello', 'types', 'ops', 'if', 'loops', 'func'];
 for (const l of LESSONS) {
   const tasks = l.blocks.filter(b => b.t === 'lab' && b.isTask);
   if (tasks.length < 3 || tasks.length > 5) { console.log('❌ lesson', l.id, 'has', tasks.length, 'tasks (want 3-5)'); bad++; }
+  tasks.forEach((t, i) => {   // from task 3 on (task 4 in lesson 1) the student writes the whole program from a problem statement
+    const need = l.id === 'how' ? i >= 3 : (l.id === 'done' ? true : i >= 2); const lines = (t.files ? t.files[0].code : t.code).trim().split('\n').filter(x => x.trim()).length;
+    if (need && (t.mode !== 'write' || !/Problem:/.test(t.task))) { console.log('❌ task', t.id, 'should be a write-the-whole-program task with a Problem statement'); bad++; }
+    if (need && !t.files && l.id !== 'how' && lines > 3) { console.log('❌ write task starter too long (should be nearly blank):', t.id); bad++; }
+    if (!need && t.mode === 'write' && l.id !== 'done') { console.log('❌ early guided task marked write', t.id); bad++; }
+  });
   let prev = 0; for (const t of tasks) { if (!t.hint || !t.solution || !t.level) { console.log('❌ task missing hint/solution/level', t.id); bad++; } if (t.level < prev) { console.log('❌ difficulty goes down at', t.id); bad++; } prev = t.level; }
   if (EARLY.includes(l.id)) {
     const codes = l.blocks.flatMap(b => b.t === 'lab' || b.t === 'example' ? [b.code || '', JSON.stringify(b.solution || '')] : b.t === 'quiz' ? b.qs.map(q => q.code || '') : []).join('\n');

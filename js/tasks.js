@@ -1244,6 +1244,780 @@ int main(void) {
 }
 `);
 
+
+/* ================================================================ "WRITE THE WHOLE PROGRAM" TASKS
+ * From task 3 of every lesson the student starts from an (almost) empty file and a problem statement. */
+const BLANK = '\n// Write the whole program here.\n';
+const BLANK_HINT = '\n// Write the whole program here.\n// Remember the parts:  #include <stdio.h>   and   int main(void) { ... return 0; }\n';
+const SKEL = '\n#include <stdio.h>\n\nint main(void) {\n    // write your printf lines here\n    return 0;\n}\n';
+const W = (id, level, title, task, out, hint, solution, extra) => T(id, level, title, task, out, hint, BLANK, solution, Object.assign({ mode: 'write' }, extra || {}));
+
+/* ---- lesson 1 (skeleton given: he has not met main yet) ---- */
+NEW['how-5'] = T('how-5', 2, 'A title banner',
+  '<b>Problem:</b> a game needs a title banner. The skeleton below already has <code>main</code>. Write the printf lines so the program prints a line of 10 equals signs, the title <code>MY GAME</code>, and another line of 10 equals signs.',
+  '==========\nMY GAME\n==========\n',
+  'Plan: three printf lines, each ending with <code>\\n</code>. A line of ten <code>=</code> is <code>==========</code>.',
+  SKEL, R`
+#include <stdio.h>
+
+int main(void) {
+    printf("==========\n");
+    printf("MY GAME\n");
+    printf("==========\n");
+    return 0;
+}
+`, { mode: 'write' });
+NEW['how-6'] = T('how-6', 3, 'The main menu',
+  '<b>Problem:</b> print the main menu of a game: a title line, then three numbered options, exactly as in the expected output. Use only printf.',
+  '=== MAIN MENU ===\n1. Play\n2. Options\n3. Quit\n',
+  'Plan: four printf lines. Do not forget the <code>\\n</code> at the end of each one.',
+  SKEL, R`
+#include <stdio.h>
+
+int main(void) {
+    printf("=== MAIN MENU ===\n");
+    printf("1. Play\n");
+    printf("2. Options\n");
+    printf("3. Quit\n");
+    return 0;
+}
+`, { mode: 'write' });
+
+/* ---- hello ---- */
+NEW['hw-card'] = W('hw-card', 2, 'A business card',
+  '<b>Problem:</b> print this business card. The text on each line must match exactly (count the spaces).',
+  '+------------------+\n| Ada Lovelace     |\n| Programmer       |\n+------------------+\n',
+  'Plan: 1) the include and main, 2) four printf lines. Each text line has a <code>|</code> at both ends; pad with spaces so the right <code>|</code> lines up.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    printf("+------------------+\n");
+    printf("| Ada Lovelace     |\n");
+    printf("| Programmer       |\n");
+    printf("+------------------+\n");
+    return 0;
+}
+`, { code: BLANK_HINT });
+NEW['hw-quote'] = W('hw-quote', 2, 'A line of dialogue',
+  '<b>Problem:</b> print a character’s name and what they say. Line 1: <code>Player:</code>, a <b>tab</b>, then <code>Ada</code>. Line 2: <code>Says: "Let\'s play!"</code> — the quotation marks are part of the output.',
+  'Player:\tAda\nSays: "Let\'s play!"\n',
+  'Plan: two printf lines. A tab is <code>\\t</code>; a quotation mark inside a string is <code>\\"</code>.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    printf("Player:\tAda\n");
+    printf("Says: \"Let's play!\"\n");
+    return 0;
+}
+`, { code: BLANK_HINT });
+NEW['hw-house'] = W('hw-house', 3, 'Draw a house',
+  '<b>Problem:</b> print this little house made of characters. Watch out: a backslash is a special character in C strings.',
+  '  /\\\n /  \\\n/____\\\n|    |\n|____|\n',
+  'To print one backslash you must write <code>\\\\</code> inside the string. Plan: five printf lines.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    printf("  /\\\n");
+    printf(" /  \\\n");
+    printf("/____\\\n");
+    printf("|    |\n");
+    printf("|____|\n");
+    return 0;
+}
+`, { code: BLANK_HINT });
+
+/* ---- types ---- */
+NEW['tw-card'] = W('tw-card', 2, 'Player card',
+  '<b>Problem:</b> store a player’s data in variables, then print it. Use: an <code>int</code> level = 12, a <code>float</code> health = 87.5 and a <code>char</code> rank = \'B\'. Print one line for each, as shown (health with 1 decimal).',
+  'Level: 12\nHealth: 87.5\nRank: B\n',
+  'Plan: 1) declare the three variables with their values, 2) three printf lines using <code>%d</code>, <code>%.1f</code> and <code>%c</code>.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int level = 12;
+    float health = 87.5;
+    char rank = 'B';
+    printf("Level: %d\n", level);
+    printf("Health: %.1f\n", health);
+    printf("Rank: %c\n", rank);
+    return 0;
+}
+`, { code: BLANK_HINT });
+NEW['tw-receipt'] = W('tw-receipt', 2, 'A tiny receipt',
+  '<b>Problem:</b> a shop sells items. Use an <code>int</code> items = 3, a <code>float</code> price = 2.25 and a <code>char</code> currency = \'$\'. Print the three lines shown (price with 2 decimals).',
+  'Items: 3\nPrice each: 2.25\nCurrency: $\n',
+  'Same recipe as the player card: declare, then print with the matching format letters. A char is printed with <code>%c</code>.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int items = 3;
+    float price = 2.25;
+    char currency = '$';
+    printf("Items: %d\n", items);
+    printf("Price each: %.2f\n", price);
+    printf("Currency: %c\n", currency);
+    return 0;
+}
+`, { code: BLANK_HINT });
+NEW['tw-sizes'] = W('tw-sizes', 3, 'How big is each type?',
+  '<b>Problem:</b> print how many bytes each type uses, using <code>sizeof</code>. Print four lines for <code>int</code>, <code>float</code>, <code>char</code> and <code>double</code>, in that order.',
+  'int: 4\nfloat: 4\nchar: 1\ndouble: 8\n',
+  'Use <code>printf("int: %zu\\n", sizeof(int));</code> — <code>%zu</code> is the format letter for sizeof results. Repeat for the other three types.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    printf("int: %zu\n", sizeof(int));
+    printf("float: %zu\n", sizeof(float));
+    printf("char: %zu\n", sizeof(char));
+    printf("double: %zu\n", sizeof(double));
+    return 0;
+}
+`, { code: BLANK_HINT });
+
+/* ---- ops ---- */
+NEW['ow-pizza'] = W('ow-pizza', 2, 'Pizza party',
+  '<b>Problem:</b> 3 friends share 17 pizza slices equally. Use two <code>int</code> variables (<code>friends</code> and <code>slices</code>). Print how many slices each friend gets, and how many are left over.',
+  'Each gets 5 slices\nLeft over: 2\n',
+  'Plan: <code>slices / friends</code> is the share (whole-number division) and <code>slices % friends</code> is what is left over.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int friends = 3;
+    int slices = 17;
+    printf("Each gets %d slices\n", slices / friends);
+    printf("Left over: %d\n", slices % friends);
+    return 0;
+}
+`);
+NEW['ow-temp'] = W('ow-temp', 2, 'Celsius to Fahrenheit',
+  '<b>Problem:</b> convert 25 degrees Celsius to Fahrenheit with the formula <code>F = C × 9 / 5 + 32</code>. Store the Celsius value in an <code>int</code> variable and print the line exactly as shown.',
+  '25 C = 77 F\n',
+  'Plan: <code>int c = 25;</code> <code>int f = c * 9 / 5 + 32;</code> then one printf with two <code>%d</code>.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int c = 25;
+    int f = c * 9 / 5 + 32;
+    printf("%d C = %d F\n", c, f);
+    return 0;
+}
+`);
+NEW['ow-time'] = W('ow-time', 3, 'Seconds to hours, minutes, seconds',
+  '<b>Problem:</b> a video is 3725 seconds long. Work out how many <b>hours</b>, <b>minutes</b> and <b>seconds</b> that is and print it in the shape shown.',
+  '1 h 2 min 5 sec\n',
+  'Hours: <code>total / 3600</code>. Minutes: <code>(total % 3600) / 60</code>. Seconds: <code>total % 60</code>. Store each in a variable first.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int total = 3725;
+    int h = total / 3600;
+    int m = (total % 3600) / 60;
+    int s = total % 60;
+    printf("%d h %d min %d sec\n", h, m, s);
+    return 0;
+}
+`);
+
+/* ---- if ---- */
+NEW['iw-ticket'] = W('iw-ticket', 2, 'Ticket price',
+  '<b>Problem:</b> a cinema charges by age. Under 12 pays 5, ages 12 to 64 pay 10, and 65 or older pay 7. Store the age in an <code>int</code> (use <b>10</b>) and print <code>Price: </code> followed by the price. <i>Afterwards change the age to 30 and 70 and check the other prices.</i>',
+  'Price: 5\n',
+  'Plan: one variable for the age and one for the price. Use <code>if</code> / <code>else if</code> / <code>else</code> to set the price, then a single printf at the end.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int age = 10;
+    int price;
+    if (age < 12) {
+        price = 5;
+    } else if (age < 65) {
+        price = 10;
+    } else {
+        price = 7;
+    }
+    printf("Price: %d\n", price);
+    return 0;
+}
+`);
+NEW['iw-odd'] = W('iw-odd', 2, 'Odd or even?',
+  '<b>Problem:</b> store the number <b>17</b> in an <code>int</code>. Print <code>17 is odd</code> if it is odd, or <code>17 is even</code> if it is even (the number in the text must come from the variable).',
+  '17 is odd\n',
+  'A number is even when <code>n % 2 == 0</code>. Use if / else with two different printf lines. <i>Try 18 afterwards.</i>',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int n = 17;
+    if (n % 2 == 0) {
+        printf("%d is even\n", n);
+    } else {
+        printf("%d is odd\n", n);
+    }
+    return 0;
+}
+`);
+NEW['iw-login'] = W('iw-login', 3, 'Door code',
+  '<b>Problem:</b> a door has the code <code>pin = 1234</code>. Someone typed <code>entered = 1234</code> and has already tried <code>attempts = 2</code> times (use these three variables). Rules: if attempts is more than 3, print <code>Locked</code>. Otherwise, if entered equals pin print <code>Access granted</code>, else print <code>Access denied</code>.',
+  'Access granted\n',
+  'Check the <b>lock</b> first (attempts &gt; 3), then compare the code. A chain: <code>if … else if … else …</code>. <i>Test other values afterwards.</i>',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int pin = 1234;
+    int entered = 1234;
+    int attempts = 2;
+    if (attempts > 3) {
+        printf("Locked\n");
+    } else if (entered == pin) {
+        printf("Access granted\n");
+    } else {
+        printf("Access denied\n");
+    }
+    return 0;
+}
+`);
+
+/* ---- loops ---- */
+NEW['lw-table'] = W('lw-table', 2, 'Table of 4',
+  '<b>Problem:</b> print the multiplication table of 4, from 4 × 1 to 4 × 5, one line each, in the shape shown. Use a loop (do not write five printfs).',
+  '4 x 1 = 4\n4 x 2 = 8\n4 x 3 = 12\n4 x 4 = 16\n4 x 5 = 20\n',
+  'A for loop with <code>i</code> from 1 to 5. Inside: <code>printf("4 x %d = %d\\n", i, 4 * i);</code>',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    for (int i = 1; i <= 5; i++) {
+        printf("4 x %d = %d\n", i, 4 * i);
+    }
+    return 0;
+}
+`, { expect: (o, r, src) => norm(o) === norm('4 x 1 = 4\n4 x 2 = 8\n4 x 3 = 12\n4 x 4 = 16\n4 x 5 = 20\n') && /\b(for|while)\b/.test(src) });
+NEW['lw-evens'] = W('lw-evens', 2, 'Sum of the even numbers',
+  '<b>Problem:</b> add up all the even numbers from 1 to 20 (2 + 4 + 6 + … + 20) and print the result.',
+  'Sum of evens: 110\n',
+  'Plan: a variable <code>sum = 0</code>; a loop from 1 to 20; inside, an <code>if</code> that checks <code>i % 2 == 0</code> and then adds i to sum; print after the loop.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int sum = 0;
+    for (int i = 1; i <= 20; i++) {
+        if (i % 2 == 0) {
+            sum += i;
+        }
+    }
+    printf("Sum of evens: %d\n", sum);
+    return 0;
+}
+`);
+NEW['lw-double'] = W('lw-double', 3, 'Doubling',
+  '<b>Problem:</b> start with the number 1 and keep doubling it, printing each value followed by a space, until you have printed 128. Finish with a new line.',
+  '1 2 4 8 16 32 64 128\n',
+  'A while loop: <code>int n = 1; while (n &lt;= 128) { print n; n = n * 2; }</code> then <code>printf("\\n");</code>',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int n = 1;
+    while (n <= 128) {
+        printf("%d ", n);
+        n = n * 2;
+    }
+    printf("\n");
+    return 0;
+}
+`);
+
+/* ---- func ---- */
+NEW['fw-area'] = W('fw-area', 2, 'Area of a rectangle',
+  '<b>Problem:</b> write a function <code>area</code> that receives a width and a height (both <code>int</code>) and <b>returns</b> width × height. In main, print the area of a 6 × 4 rectangle.',
+  'Area: 24\n',
+  'Plan: 1) <code>int area(int w, int h) { return w * h; }</code> above main, 2) call it inside the printf in main.',
+  R`
+#include <stdio.h>
+
+int area(int w, int h) {
+    return w * h;
+}
+
+int main(void) {
+    printf("Area: %d\n", area(6, 4));
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'Area: 24\n' && /\barea\s*\(\s*int/.test(src) });
+NEW['fw-even'] = W('fw-even', 2, 'Is it even?',
+  '<b>Problem:</b> write a function <code>is_even</code> that receives an <code>int</code> and returns <b>1</b> if it is even, otherwise <b>0</b>. In main print the answer for 8 and for 7 as shown.',
+  '8 even: 1\n7 even: 0\n',
+  'Inside the function: <code>if (n % 2 == 0) { return 1; } else { return 0; }</code>. In main: <code>printf("8 even: %d\\n", is_even(8));</code>',
+  R`
+#include <stdio.h>
+
+int is_even(int n) {
+    if (n % 2 == 0) {
+        return 1;
+    } else {
+        return 0;
+    }
+}
+
+int main(void) {
+    printf("8 even: %d\n", is_even(8));
+    printf("7 even: %d\n", is_even(7));
+    return 0;
+}
+`, { expect: (o, r, src) => o === '8 even: 1\n7 even: 0\n' && /is_even\s*\(\s*int/.test(src) });
+NEW['fw-temp'] = W('fw-temp', 3, 'A converter function',
+  '<b>Problem:</b> write a function <code>to_fahrenheit</code> that receives Celsius (an <code>int</code>) and returns <code>c * 9 / 5 + 32</code>. In main, use it to print the three lines shown, for 0, 25 and 100 degrees.',
+  '0 C = 32 F\n25 C = 77 F\n100 C = 212 F\n',
+  'Write the function once, call it three times. Each call: <code>printf("25 C = %d F\\n", to_fahrenheit(25));</code>',
+  R`
+#include <stdio.h>
+
+int to_fahrenheit(int c) {
+    return c * 9 / 5 + 32;
+}
+
+int main(void) {
+    printf("0 C = %d F\n", to_fahrenheit(0));
+    printf("25 C = %d F\n", to_fahrenheit(25));
+    printf("100 C = %d F\n", to_fahrenheit(100));
+    return 0;
+}
+`, { expect: (o, r, src) => o === '0 C = 32 F\n25 C = 77 F\n100 C = 212 F\n' && /to_fahrenheit\s*\(\s*int/.test(src) });
+
+/* ---- headers ---- */
+NEW['hw-tax'] = W('hw-tax', 2, 'Tax with a constant',
+  '<b>Problem:</b> a game shop adds 10 percent tax. Define a constant <code>TAX</code> as 10 with <code>#define</code>. Store the price 200 in an <code>int</code> and print the tax as <code>price * TAX / 100</code>.',
+  'Tax: 20\n',
+  'Plan: <code>#define TAX 10</code> at the top (no <code>=</code>, no <code>;</code>), then use TAX like a number in the calculation.',
+  R`
+#include <stdio.h>
+
+#define TAX 10
+
+int main(void) {
+    int price = 200;
+    printf("Tax: %d\n", price * TAX / 100);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'Tax: 20\n' && /#define\s+TAX\s+10/.test(src) });
+NEW['hw-mathlib'] = { id: 'hw-mathlib', level: 3, mode: 'write', title: 'Write a tiny maths library (3 files)',
+  task: '<b>Problem:</b> <code>main.c</code> is finished: it calls <code>add</code> and <code>times</code>. Write the other two files yourself. <code>mathx.h</code> declares both functions (with an include guard) and <code>mathx.c</code> contains their code. Both take two ints and return an int.',
+  out: '7 + 5 = 12\n7 * 5 = 35\n',
+  hint: 'Plan: 1) mathx.h: <code>#ifndef MATHX_H / #define MATHX_H</code>, the two prototypes, <code>#endif</code>. 2) mathx.c: <code>#include "mathx.h"</code> then the two function bodies. Read the linker error first if you forget one!',
+  files: [
+    { name: 'main.c', code: '\n#include <stdio.h>\n#include "mathx.h"\n\nint main(void) {\n    printf("7 + 5 = %d\\n", add(7, 5));\n    printf("7 * 5 = %d\\n", times(7, 5));\n    return 0;\n}\n' },
+    { name: 'mathx.h', code: '\n// declare add and times here (with an include guard)\n' },
+    { name: 'mathx.c', code: '\n// write add and times here\n' },
+  ],
+  solution: { 'mathx.h': '\n#ifndef MATHX_H\n#define MATHX_H\n\nint add(int a, int b);\nint times(int a, int b);\n\n#endif\n', 'mathx.c': '\n#include "mathx.h"\n\nint add(int a, int b) { return a + b; }\nint times(int a, int b) { return a * b; }\n' },
+  expect: (o, r, src) => o === '7 + 5 = 12\n7 * 5 = 35\n' && /#ifndef|#pragma once/.test(src) };
+
+/* ---- arrays ---- */
+NEW['aw-avg'] = W('aw-avg', 2, 'Class average',
+  '<b>Problem:</b> four test scores are stored in an array: 70, 85, 90 and 60. Add them up with a loop and print the average (whole-number division is fine).',
+  'Average: 76\n',
+  'Plan: 1) <code>int scores[4] = {70, 85, 90, 60};</code> 2) a for loop adding each element to <code>sum</code> 3) print <code>sum / 4</code>.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int scores[4] = {70, 85, 90, 60};
+    int sum = 0;
+    for (int i = 0; i < 4; i++) {
+        sum += scores[i];
+    }
+    printf("Average: %d\n", sum / 4);
+    return 0;
+}
+`);
+NEW['aw-name'] = W('aw-name', 2, 'Name length',
+  '<b>Problem:</b> store the word <code>Windows</code> in a <code>char</code> array and print <code>Windows has 7 letters</code> where the word and the number both come from your variable (use <code>strlen</code>).',
+  'Windows has 7 letters\n',
+  'You need <code>#include &lt;string.h&gt;</code> too. <code>printf("%s has %zu letters\\n", word, strlen(word));</code>',
+  R`
+#include <stdio.h>
+#include <string.h>
+
+int main(void) {
+    char word[] = "Windows";
+    printf("%s has %zu letters\n", word, strlen(word));
+    return 0;
+}
+`);
+NEW['aw-pass'] = W('aw-pass', 3, 'How many passed?',
+  '<b>Problem:</b> five scores are in an array: 45, 80, 33, 91, 60. A score of <b>50 or more</b> passes. Count how many scores pass and print the count.',
+  'Passed: 3\n',
+  'Plan: a counter starting at 0; a loop over the 5 elements; inside, an <code>if</code> that checks <code>scores[i] &gt;= 50</code> and increases the counter.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int scores[5] = {45, 80, 33, 91, 60};
+    int passed = 0;
+    for (int i = 0; i < 5; i++) {
+        if (scores[i] >= 50) {
+            passed++;
+        }
+    }
+    printf("Passed: %d\n", passed);
+    return 0;
+}
+`);
+
+/* ---- addr ---- */
+NEW['adw-array'] = W('adw-array', 2, 'Addresses of an array',
+  '<b>Problem:</b> create an array <code>int nums[3] = {7, 8, 9};</code> and print the <b>address</b> of each element, one address per line, using a loop and <code>%p</code>. (Your addresses will differ from other people’s — but each should be 4 higher than the one before.)',
+  null,
+  'Plan: a for loop from 0 to 2; inside <code>printf("%p\\n", (void*)&amp;nums[i]);</code>',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int nums[3] = {7, 8, 9};
+    for (int i = 0; i < 3; i++) {
+        printf("%p\n", (void*)&nums[i]);
+    }
+    return 0;
+}
+`, { expect: o => { const a = o.trim().split('\n').map(x => parseInt(x, 16)); return a.length === 3 && a.every(x => x > 0) && a[1] - a[0] === 4 && a[2] - a[1] === 4; } });
+
+/* ---- ptr ---- */
+NEW['pw-double'] = W('pw-double', 2, 'Double it through a pointer',
+  '<b>Problem:</b> declare <code>int score = 21;</code> and a pointer <code>p</code> that points at it. Double the score by writing through the pointer only (do not write <code>score =</code>), then print <code>score=</code> and the value.',
+  'score=42\n',
+  'Plan: <code>int *p = &amp;score;</code> then <code>*p = *p * 2;</code> then print <code>score</code>.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int score = 21;
+    int *p = &score;
+    *p = *p * 2;
+    printf("score=%d\n", score);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'score=42\n' && /\*\s*p\s*=/.test(src) });
+NEW['pw-swap'] = W('pw-swap', 2, 'Swap two numbers',
+  '<b>Problem:</b> write a function <code>swap</code> that exchanges the values of two <code>int</code> variables of the caller. In main set <code>x = 3</code> and <code>y = 8</code>, call swap, and print <code>x=8 y=3</code>.',
+  'x=8 y=3\n',
+  'The function must receive <b>addresses</b>: <code>void swap(int *a, int *b)</code>. Use a third variable <code>tmp</code> to hold one value while you copy. Call it with <code>swap(&amp;x, &amp;y);</code>',
+  R`
+#include <stdio.h>
+
+void swap(int *a, int *b) {
+    int tmp = *a;
+    *a = *b;
+    *b = tmp;
+}
+
+int main(void) {
+    int x = 3;
+    int y = 8;
+    swap(&x, &y);
+    printf("x=%d y=%d\n", x, y);
+    return 0;
+}
+`);
+NEW['pw-sum'] = W('pw-sum', 3, 'Walk an array with a pointer',
+  '<b>Problem:</b> an array holds 2, 4, 6 and 8. Add the numbers up by moving a pointer <code>p</code> along the array (use <code>*p</code> and <code>p++</code>, no <code>nums[i]</code>) and print <code>sum=20</code>.',
+  'sum=20\n',
+  'Plan: <code>int *p = nums;</code> then a loop of 4 laps: <code>sum += *p;</code> and <code>p++;</code>.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int nums[4] = {2, 4, 6, 8};
+    int *p = nums;
+    int sum = 0;
+    for (int i = 0; i < 4; i++) {
+        sum += *p;
+        p++;
+    }
+    printf("sum=%d\n", sum);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'sum=20\n' && /\*\s*p\b/.test(src) && !/nums\s*\[\s*i/.test(src) });
+
+/* ---- structs ---- */
+NEW['sw-monster'] = W('sw-monster', 2, 'A monster struct',
+  '<b>Problem:</b> define a struct type <code>Monster</code> with two <code>int</code> fields, <code>hp</code> and <code>attack</code>. Create a monster named <code>goblin</code> with hp 30 and attack 5, and print <code>Goblin: hp=30 attack=5</code> using the fields.',
+  'Goblin: hp=30 attack=5\n',
+  'Plan: 1) <code>typedef struct { int hp; int attack; } Monster;</code> above main, 2) <code>Monster goblin = { 30, 5 };</code> 3) printf with <code>goblin.hp</code> and <code>goblin.attack</code>.',
+  R`
+#include <stdio.h>
+
+typedef struct { int hp; int attack; } Monster;
+
+int main(void) {
+    Monster goblin = { 30, 5 };
+    printf("Goblin: hp=%d attack=%d\n", goblin.hp, goblin.attack);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'Goblin: hp=30 attack=5\n' && /struct/.test(src) });
+NEW['sw-shop'] = W('sw-shop', 3, 'Shopping cart total',
+  '<b>Problem:</b> define a struct <code>Line</code> with <code>qty</code> and <code>price</code> (ints). Make an array of three lines: (2 items at 5), (3 at 4) and (1 at 10). Loop over the array, add up qty × price for every line, and print <code>total=</code> and the sum.',
+  'total=32\n',
+  'Plan: struct type, array <code>Line cart[3] = { {2, 5}, {3, 4}, {1, 10} };</code>, then <code>total += cart[i].qty * cart[i].price;</code> in a for loop.',
+  R`
+#include <stdio.h>
+
+typedef struct { int qty; int price; } Line;
+
+int main(void) {
+    Line cart[3] = { {2, 5}, {3, 4}, {1, 10} };
+    int total = 0;
+    for (int i = 0; i < 3; i++) {
+        total += cart[i].qty * cart[i].price;
+    }
+    printf("total=%d\n", total);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'total=32\n' && /struct/.test(src) });
+
+/* ---- struct / heap ---- */
+NEW['mw-squares'] = W('mw-squares', 3, 'Squares on the heap',
+  '<b>Problem:</b> reserve room for 5 ints on the heap with <code>malloc</code>. Fill them with the squares 0, 1, 4, 9, 16 (i × i), print them on one line separated by spaces, and then give the memory back with <code>free</code>.',
+  '0 1 4 9 16\n',
+  'Plan: <code>int *sq = malloc(5 * sizeof(int));</code>, a loop filling <code>sq[i] = i * i;</code>, a loop printing, then <code>free(sq);</code>. Remember <code>#include &lt;stdlib.h&gt;</code>.',
+  R`
+#include <stdio.h>
+#include <stdlib.h>
+
+int main(void) {
+    int *sq = malloc(5 * sizeof(int));
+    for (int i = 0; i < 5; i++) {
+        sq[i] = i * i;
+    }
+    for (int i = 0; i < 5; i++) {
+        printf("%d ", sq[i]);
+    }
+    printf("\n");
+    free(sq);
+    return 0;
+}
+`, { expect: (o, r) => norm(o) === '0 1 4 9 16' && r.leaks.length === 0 });
+
+/* ---- dptr ---- */
+NEW['dw-make'] = W('dw-make', 3, 'Create a number inside a function',
+  '<b>Problem:</b> write a function <code>make_number(int **out)</code> that allocates an int on the heap, stores 42 in it and gives the pointer back through <code>out</code>. In main, call it, print <code>got 42</code> from the result, and free the memory.',
+  'got 42\n',
+  'Inside the function: <code>*out = malloc(sizeof(int));</code> and <code>**out = 42;</code>. In main: <code>int *p = NULL; make_number(&amp;p);</code> then print <code>*p</code> and <code>free(p);</code>',
+  R`
+#include <stdio.h>
+#include <stdlib.h>
+
+void make_number(int **out) {
+    *out = malloc(sizeof(int));
+    **out = 42;
+}
+
+int main(void) {
+    int *p = NULL;
+    make_number(&p);
+    printf("got %d\n", *p);
+    free(p);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'got 42\n' && r.leaks.length === 0 && /int\s*\*\*/.test(src) });
+
+/* ---- list ---- */
+NEW['lw-build'] = W('lw-build', 3, 'Build a list from scratch',
+  '<b>Problem:</b> build a linked list of the numbers 1, 2, 3, 4 by adding each new node at the <b>front</b>. Then walk the list, print the values on one line (it will read 4 3 2 1), print the sum on the next line, and finally free every node.',
+  '4 3 2 1\nsum=10\n',
+  'Plan: 1) <code>typedef struct Node { int value; struct Node *next; } Node;</code> 2) a loop making a node with malloc: <code>n-&gt;value = i; n-&gt;next = head; head = n;</code> 3) a walking loop <code>for (Node *c = head; c; c = c-&gt;next)</code> 4) free in a loop, saving <code>next</code> first.',
+  R`
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node { int value; struct Node *next; } Node;
+
+int main(void) {
+    Node *head = NULL;
+    for (int i = 1; i <= 4; i++) {
+        Node *n = malloc(sizeof(Node));
+        n->value = i;
+        n->next = head;
+        head = n;
+    }
+    int sum = 0;
+    for (Node *c = head; c != NULL; c = c->next) {
+        printf("%d ", c->value);
+        sum += c->value;
+    }
+    printf("\n");
+    printf("sum=%d\n", sum);
+    while (head != NULL) {
+        Node *next = head->next;
+        free(head);
+        head = next;
+    }
+    return 0;
+}
+`, { expect: (o, r) => norm(o) === '4 3 2 1\nsum=10' && r.leaks.length === 0 });
+
+/* ---- win ---- */
+NEW['ww-wait'] = W('ww-wait', 2, 'Did we really wait?',
+  '<b>Problem:</b> measure a pause. Read <code>GetTickCount()</code> into a <code>DWORD</code> variable, call <code>Sleep(100)</code>, read the tick count again and subtract. If at least 100 milliseconds passed print <code>Waited OK</code>, otherwise <code>Too fast</code>.',
+  'Waited OK\n',
+  'You need <code>#include &lt;windows.h&gt;</code>. Plan: <code>DWORD start = GetTickCount();</code> … <code>DWORD elapsed = GetTickCount() - start;</code> then an if on <code>elapsed &gt;= 100</code>.',
+  R`
+#include <stdio.h>
+#include <windows.h>
+
+int main(void) {
+    DWORD start = GetTickCount();
+    Sleep(100);
+    DWORD elapsed = GetTickCount() - start;
+    if (elapsed >= 100) {
+        printf("Waited OK\n");
+    } else {
+        printf("Too fast\n");
+    }
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'Waited OK\n' && /Sleep\s*\(/.test(src) });
+
+/* ---- wrap-up: all three are write-it-yourself ---- */
+NEW['dw-1'] = W('dw-1', 2, 'Price list total',
+  '<b>Problem:</b> four prices are stored in an array: 5, 10, 15 and 20. Loop over the array, add them up and print the total.',
+  'Total: 50\n',
+  'Array + for loop + a running total. Same pattern as the class average.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int prices[4] = {5, 10, 15, 20};
+    int total = 0;
+    for (int i = 0; i < 4; i++) {
+        total += prices[i];
+    }
+    printf("Total: %d\n", total);
+    return 0;
+}
+`);
+NEW['dw-2'] = W('dw-2', 2, 'Count the even numbers',
+  '<b>Problem:</b> the array holds 1, 2, 3, 4, 5, 6. Count how many of them are even and print the count.',
+  'Evens: 3\n',
+  'Loop + if (<code>a[i] % 2 == 0</code>) + a counter.',
+  R`
+#include <stdio.h>
+
+int main(void) {
+    int a[6] = {1, 2, 3, 4, 5, 6};
+    int count = 0;
+    for (int i = 0; i < 6; i++) {
+        if (a[i] % 2 == 0) {
+            count++;
+        }
+    }
+    printf("Evens: %d\n", count);
+    return 0;
+}
+`);
+NEW['dw-3'] = W('dw-3', 3, 'Heal a player',
+  '<b>Problem:</b> define a struct <code>Player</code> with an <code>int hp</code>. Write a function <code>heal</code> that receives a <b>pointer</b> to a Player and an amount, adds the amount to hp, but never lets hp go above 100. In main create a player with hp 80, heal by 50, and print <code>hp=100</code>.',
+  'hp=100\n',
+  'Plan: typedef the struct, then <code>void heal(Player *p, int amount)</code> using <code>p-&gt;hp</code>; in main call <code>heal(&amp;hero, 50);</code>.',
+  R`
+#include <stdio.h>
+
+typedef struct { int hp; } Player;
+
+void heal(Player *p, int amount) {
+    p->hp += amount;
+    if (p->hp > 100) {
+        p->hp = 100;
+    }
+}
+
+int main(void) {
+    Player hero = { 80 };
+    heal(&hero, 50);
+    printf("hp=%d\n", hero.hp);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'hp=100\n' && /->/.test(src) });
+
+
+NEW['lw-sum'] = W('lw-sum', 2, 'Sum a chain of nodes',
+  '<b>Problem:</b> define a node type <code>Node</code> with an <code>int value</code> and a <code>next</code> pointer. Create three nodes on the stack holding 10, 20 and 30, linked in that order (the last one points to <code>NULL</code>). Walk the chain with a loop, add up the values and print <code>sum=60</code>.',
+  'sum=60\n',
+  'Plan: <code>typedef struct Node { int value; struct Node *next; } Node;</code> then <code>Node c = {30, NULL}; Node b = {20, &amp;c}; Node a = {10, &amp;b};</code> and <code>for (Node *cur = &amp;a; cur != NULL; cur = cur-&gt;next)</code>.',
+  R`
+#include <stdio.h>
+
+typedef struct Node { int value; struct Node *next; } Node;
+
+int main(void) {
+    Node c = { 30, NULL };
+    Node b = { 20, &c };
+    Node a = { 10, &b };
+    int sum = 0;
+    for (Node *cur = &a; cur != NULL; cur = cur->next) {
+        sum += cur->value;
+    }
+    printf("sum=%d\n", sum);
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'sum=60\n' && /->\s*next/.test(src) });
+NEW['lw-find'] = W('lw-find', 3, 'Is the value in the list?',
+  '<b>Problem:</b> using the same three-node chain (10, 20, 30), write a function <code>contains(Node *head, int v)</code> that returns <b>1</b> if some node holds v and <b>0</b> if not. In main print <code>contains 20: 1</code> and <code>contains 99: 0</code>.',
+  'contains 20: 1\ncontains 99: 0\n',
+  'Walk with <code>for (Node *c = head; c != NULL; c = c-&gt;next)</code>; if <code>c-&gt;value == v</code> return 1 immediately; after the loop return 0.',
+  R`
+#include <stdio.h>
+
+typedef struct Node { int value; struct Node *next; } Node;
+
+int contains(Node *head, int v) {
+    for (Node *c = head; c != NULL; c = c->next) {
+        if (c->value == v) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
+int main(void) {
+    Node c = { 30, NULL };
+    Node b = { 20, &c };
+    Node a = { 10, &b };
+    printf("contains 20: %d\n", contains(&a, 20));
+    printf("contains 99: %d\n", contains(&a, 99));
+    return 0;
+}
+`, { expect: (o, r, src) => o === 'contains 20: 1\ncontains 99: 0\n' && /contains\s*\(\s*Node/.test(src) });
+NEW['ww-box'] = W('ww-box', 3, 'Quit confirmation',
+  '<b>Problem:</b> show a Yes/No message box with the text <code>Quit the game?</code> and the title <code>Confirm</code> (use <code>MB_YESNO | MB_ICONQUESTION</code>). Store the answer. If it is <code>IDYES</code> print <code>Quitting</code>, otherwise print <code>Staying</code>. (The simulator always answers Yes.)',
+  'Quitting\n',
+  'Include <code>&lt;stdio.h&gt;</code> and <code>&lt;windows.h&gt;</code>. <code>int answer = MessageBoxA(NULL, "Quit the game?", "Confirm", MB_YESNO | MB_ICONQUESTION);</code> then if / else on <code>answer == IDYES</code>.',
+  R`
+#include <stdio.h>
+#include <windows.h>
+
+int main(void) {
+    int answer = MessageBoxA(NULL, "Quit the game?", "Confirm", MB_YESNO | MB_ICONQUESTION);
+    if (answer == IDYES) {
+        printf("Quitting\n");
+    } else {
+        printf("Staying\n");
+    }
+    return 0;
+}
+`, { expect: (o, r) => o === 'Quitting\n' && r.events.some(e => e.caption === 'Confirm' && e.text === 'Quit the game?' && (e.flags & 0xF) === 4) });
+
 /* ================================================================ PLAN: order + which old labs to keep */
 const KEEP = {   // existing lab id → [level, expected-output text shown to the student]
   'l4-div': [3, 'Average: 3.50\n'], 'l5-bug': [2, 'Still alive\nLives left: 3\n'], 'l6-table': [2, '3 x 1 = 3\n3 x 2 = 6\n…\n3 x 10 = 30\n'],
@@ -1256,23 +2030,23 @@ const KEEP = {   // existing lab id → [level, expected-output text shown to th
   'l11-msg': [1, null], 'l11-time': [2, null], 'l11-file': [3, 'Read back 11 bytes: Hello Win32\n'],
 };
 const PLAN = {
-  how: ['how-1', 'how-2', 'how-3', 'how-4', 'how-5'],
-  hello: ['hello-1', 'hello-2', 'hello-3', 'hello-4', 'hello-5'],
-  types: ['types-1', 'types-2', 'types-3', 'types-4', 'l3-overflow'],
-  ops: ['ops-1', 'ops-2', 'ops-3', 'ops-4', 'l4-div'],
-  if: ['if-1', 'if-2', 'if-3', 'l5-bug', 'if-5'],
-  loops: ['loop-1', 'loop-2', 'l6-table', 'loop-4', 'loop-5'],
-  func: ['func-1', 'func-2', 'func-3', 'l7-square', 'func-5'],
-  headers: ['hd-4', 'h-debug', 'h-macro', 'h-multi'],
-  arrays: ['arr-1', 'arr-2', 'l8-sum', 'arr-4', 'arr-5'],
-  addr: ['a-task', 'ad-2', 'ad-3'],
-  ptr: ['p-1', 'p-2', 'l9-swap', 'p-3', 'l9-walk'],
-  structs: ['s-0', 's-1', 's-3', 's-2'],
-  struct: ['m-1', 'l10-heap', 'm-3'],
-  dptr: ['d-1', 'd-3', 'd-2'],
-  list: ['l-1', 'l-2', 'l-3', 'l-4', 'l-5'],
-  win: ['l11-msg', 'w-2', 'l11-time', 'l11-file'],
-  done: ['r-1', 'r-2', 'r-3'],
+  how: ['how-1', 'how-2', 'how-4', 'how-5', 'how-6'],
+  hello: ['hello-1', 'hello-3', 'hw-card', 'hw-quote', 'hw-house'],
+  types: ['types-1', 'types-2', 'tw-card', 'tw-receipt', 'tw-sizes'],
+  ops: ['ops-1', 'ops-2', 'ow-pizza', 'ow-temp', 'ow-time'],
+  if: ['if-1', 'if-2', 'iw-ticket', 'iw-odd', 'iw-login'],
+  loops: ['loop-1', 'loop-2', 'lw-table', 'lw-evens', 'lw-double'],
+  func: ['func-1', 'func-2', 'fw-area', 'fw-even', 'fw-temp'],
+  headers: ['hd-4', 'h-debug', 'hw-tax', 'hw-mathlib'],
+  arrays: ['arr-1', 'arr-2', 'aw-avg', 'aw-name', 'aw-pass'],
+  addr: ['a-task', 'ad-2', 'adw-array'],
+  ptr: ['p-1', 'p-2', 'pw-double', 'pw-swap', 'pw-sum'],
+  structs: ['s-0', 's-1', 'sw-monster', 'sw-shop'],
+  struct: ['m-1', 'm-3', 'mw-squares'],
+  dptr: ['d-1', 'd-3', 'dw-make'],
+  list: ['l-1', 'l-2', 'lw-sum', 'lw-build', 'lw-find'],
+  win: ['l11-msg', 'w-2', 'ww-wait', 'ww-box'],
+  done: ['dw-1', 'dw-2', 'dw-3'],
 };
 const HEAD = {
   how: 'Learn the build cycle: run, spot, fix.', hello: 'Anatomy of a program, escape characters.', types: 'Variables: int, float, char.',
@@ -1288,7 +2062,7 @@ function labBlock(item, lesson) {
   if (typeof item !== 'string') return null;
   if (NEW[item]) {
     const t = NEW[item];
-    return { t: 'lab', id: t.id, title: t.title, level: t.level, task: t.task, out: t.out || null, hint: t.hint, code: t.code, solution: t.solution, maxRows: 16, isTask: true,
+    return { t: 'lab', id: t.id, title: t.title, level: t.level, mode: t.mode || null, task: t.task, out: t.out || null, hint: t.hint, code: t.code, files: t.files, solution: t.solution, maxRows: 18, isTask: true,
       expect: t.expect || (o => norm(o) === norm(t.out)) };
   }
   const old = lesson.blocks.find(b => b.t === 'lab' && b.id === item);
@@ -1302,7 +2076,7 @@ Object.keys(PLAN).forEach(id => {
   group.forEach((g, i) => { g.num = i + 1; });
   // remove every old task-lab (those with a checker); keep free-play demos
   les.blocks = les.blocks.filter(b => !(b.t === 'lab' && b.expect));
-  const head = { t: 'html', h: '<div class="taskhead"><h2>🧪 Practice tasks <span class="muted" style="font-size:.7em;font-weight:400">· ' + group.length + ' tasks, easy → harder</span></h2><p>' + (HEAD[id] || '') + ' Do them in order. Stuck? Press <b>💡 Hint</b>.</p></div>' };
+  const head = { t: 'html', h: '<div class="taskhead"><h2>🧪 Practice tasks <span class="muted" style="font-size:.7em;font-weight:400">· ' + group.length + ' tasks, easy → harder</span></h2><p>' + (HEAD[id] || '') + ' Tasks 1–2 are guided (fill in the <code>TODO</code>). From task 3 you get a problem and write the <b>whole program</b> yourself. Stuck? Press <b>💡 Hint</b>.</p></div>' };
   let at = les.blocks.findIndex(b => b.t === 'quiz'); if (at < 0) { at = les.blocks.findIndex(b => b.t === 'tutor'); if (at < 0) at = les.blocks.length; }
   les.blocks.splice(at, 0, head, ...group);
 });

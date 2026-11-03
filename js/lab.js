@@ -75,7 +75,7 @@ function create(cfg) {
   let result = null, stepIdx = 0, timer = null;
 
   root.innerHTML = '<div class="lab-head"><span>' + (cfg.icon || '🧪') + '</span><span class="lt"></span><span class="badge"></span></div>';
-  root.querySelector('.lt').innerHTML = (cfg.num ? '<span class="tnum">Task ' + cfg.num + '</span> ' : '') + esc(cfg.title || 'Try it') + (cfg.level ? ' <span class="stars" title="difficulty">' + '⭐'.repeat(cfg.level) + '</span>' : '');
+  root.querySelector('.lt').innerHTML = (cfg.num ? '<span class="tnum">Task ' + cfg.num + '</span> ' : '') + esc(cfg.title || 'Try it') + (cfg.level ? ' <span class="stars" title="difficulty">' + '⭐'.repeat(cfg.level) + '</span>' : '') + (cfg.mode === 'write' ? ' <span class="wmode">✍ write the whole program</span>' : '');
   const badge = root.querySelector('.badge');
   const setBadge = ok => { badge.textContent = ok ? '✅ task complete' : (cfg.expect ? 'task not done yet' : 'free play'); badge.className = 'badge' + (ok ? ' ok' : ''); };
   setBadge(store.get('done.' + cfg.id) === '1');

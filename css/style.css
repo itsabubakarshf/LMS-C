@@ -315,3 +315,4 @@ body.tutor .btn.sol{border-color:var(--amber);color:var(--amber)}
 .tsheet pre{overflow:auto;background:var(--code-bg);border:1px solid var(--line);border-radius:8px;padding:8px 12px;font-size:12.5px}
 .tsheet h3{margin:1.4em 0 .3em}
 @media print{.top,#nav,.jump,.btn{display:none!important}#main{margin:0;padding:0}details[open]{break-inside:avoid}}
+.lab-head .wmode{font:600 11px var(--sans);background:var(--amber-soft);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 40%,transparent);border-radius:99px;padding:2px 9px;margin-left:6px}
