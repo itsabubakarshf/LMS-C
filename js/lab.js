@@ -75,13 +75,14 @@ function create(cfg) {
   let result = null, stepIdx = 0, timer = null;
 
   root.innerHTML = '<div class="lab-head"><span>' + (cfg.icon || '🧪') + '</span><span class="lt"></span><span class="badge"></span></div>';
-  root.querySelector('.lt').textContent = cfg.title || 'Try it';
+  root.querySelector('.lt').innerHTML = (cfg.num ? '<span class="tnum">Task ' + cfg.num + '</span> ' : '') + esc(cfg.title || 'Try it') + (cfg.level ? ' <span class="stars" title="difficulty">' + '⭐'.repeat(cfg.level) + '</span>' : '');
   const badge = root.querySelector('.badge');
   const setBadge = ok => { badge.textContent = ok ? '✅ task complete' : (cfg.expect ? 'task not done yet' : 'free play'); badge.className = 'badge' + (ok ? ' ok' : ''); };
   setBadge(store.get('done.' + cfg.id) === '1');
   if (cfg.noBadge) badge.style.display = 'none';
   if (cfg.intro) root.appendChild(el('p', 'lab-intro', cfg.intro));
   if (cfg.task) root.appendChild(el('div', 'lab-task', '🎯 <b>Your task:</b> ' + cfg.task));
+  if (cfg.out) { const ex = el('div', 'expected'); ex.innerHTML = '<b>Expected output</b>'; const pre = el('pre', 'mono small'); pre.textContent = cfg.out; ex.appendChild(pre); root.appendChild(ex); }
 
   const ed = el('div', 'editor');
   const gutter = el('div', 'gutter');
@@ -133,19 +134,28 @@ function create(cfg) {
   const bReset = el('button', 'btn', '↺ Reset code');
   const bHint = el('button', 'btn', '💡 Hint');
   bar.append(bRun); if (!multi && !cfg.noStep) bar.appendChild(bStep); bar.append(bReset); if (cfg.hint) bar.appendChild(bHint);
-  const bSol = el('button', 'btn', '👀 Solution'); let mine = null;
+  const bSol = el('button', 'btn sol', '👀 Solution (tutor)'); let mine = null;
   if (cfg.solution) {
     bar.appendChild(bSol);
     bSol.onclick = () => {
       exitStep();
       if (multi && typeof cfg.solution === 'object') {
         if (mine === null) { files[curTab].text = ta.value; mine = files.map(f => f.text); files.forEach(f => { if (cfg.solution[f.name] !== undefined) f.text = cfg.solution[f.name].replace(/^\n/, ''); }); bSol.textContent = '↩ Back to my code'; }
-        else { files.forEach((f, i) => { f.text = mine[i]; }); mine = null; bSol.textContent = '👀 Solution'; }
+        else { files.forEach((f, i) => { f.text = mine[i]; }); mine = null; bSol.textContent = '👀 Solution (tutor)'; }
         ta.value = files[curTab].text;
       } else if (mine === null) { mine = ta.value; ta.value = cfg.solution.replace(/^\n/, ''); bSol.textContent = '↩ Back to my code'; }
-      else { ta.value = mine; mine = null; bSol.textContent = '👀 Solution'; }
+      else { ta.value = mine; mine = null; bSol.textContent = '👀 Solution (tutor)'; }
       curLine = errLine = 0; paint();
     };
+  }
+  if (cfg.isTask) {
+    const bCopy = el('button', 'btn copy', '📋 Copy task');
+    bCopy.onclick = () => {
+      const starter = multi ? files.map(f => '// ' + f.name + '\n' + f.init).join('\n') : initial;
+      const txt = (cfg.title || 'Task') + (cfg.level ? '  (' + '*'.repeat(cfg.level) + ')' : '') + '\n\n' + String(cfg.task || '').replace(/<[^>]+>/g, '') + (cfg.out ? '\n\nExpected output:\n' + cfg.out : '') + (cfg.hint ? '\n\nHint: ' + String(cfg.hint).replace(/<[^>]+>/g, '') : '') + '\n\nStarter code:\n' + starter;
+      (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(() => { bCopy.textContent = '✔ Copied'; setTimeout(() => { bCopy.textContent = '📋 Copy task'; }, 1500); }, () => { bCopy.textContent = '(copy blocked)'; });
+    };
+    bar.appendChild(bCopy);
   }
   let stdinEl = null;
   if (cfg.stdin !== undefined || cfg.showStdin) {

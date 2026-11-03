@@ -76,7 +76,7 @@ int main(void)
 `, expect: o => o === 'Hello, Ada!\n' },
     { t: 'lab', id: 'l2-three', title: 'Print three lines', icon: '🖨',
       task: 'Make the program print three lines: your name, your favourite game, and a number.',
-      hint: 'Use printf three times, each ending with \\n. Or try puts("text"), which adds the newline for you.',
+      hint: 'Use printf three times, each ending with \\n. Or try printf("text\n"), which adds the newline for you.',
       code: R`
 #include <stdio.h>
 
@@ -226,18 +226,18 @@ elif hp > 0:
 else:
     print("Game over")`, 'Colon + indentation. <code>elif</code>.'],
            b: ['C', R`if (hp > 50) {
-    puts("Healthy");
+    printf("Healthy\n");
 } else if (hp > 0) {
-    puts("Wounded");
+    printf("Wounded\n");
 } else {
-    puts("Game over");
+    printf("Game over\n");
 }`, 'Condition in <b>parentheses</b>, body in <b>braces</b>. <code>else if</code> is two words.'] },
     { t: 'widget', w: 'flowIf' },
     { t: 'warn', h: `<b>= is assignment, == is comparison.</b> <code>if (lives = 0)</code> does not ask “is lives zero?” — it <i>sets</i> lives to zero. The compiler warns you; never ignore warnings.` },
     { t: 'html', h: `<h3>switch — a menu of exact values</h3><pre class="mono small card">${Lab.highlight(R`switch (key) {
-    case 'w': puts("up");    break;
-    case 's': puts("down");  break;
-    default:  puts("unknown");
+    case 'w': printf("up\n");    break;
+    case 's': printf("down\n");  break;
+    default:  printf("unknown\n");
 }`)}</pre><p>Without <code>break</code>, execution <b>falls through</b> into the next case — a famous C surprise.</p>` },
     { t: 'lab', id: 'l5-grade', title: 'Grade calculator', icon: '🎓', stdin: '85',
       task: 'Print <code>A</code> for 90+, <code>B</code> for 80–89, <code>C</code> for 70–79, otherwise <code>F</code>. With the input 85 it must print B. Then change the keyboard input and test the others.',
@@ -262,10 +262,10 @@ int main(void) {
     printf("Enter score: ");
     scanf("%d", &score);
 
-    if (score >= 90) puts("A");
-    else if (score >= 80) puts("B");
-    else if (score >= 70) puts("C");
-    else puts("F");
+    if (score >= 90) printf("A\n");
+    else if (score >= 80) printf("B\n");
+    else if (score >= 70) printf("C\n");
+    else printf("F\n");
 
     return 0;
 }
@@ -367,9 +367,9 @@ int main(void) {
 
 int main(void) {
     for (int i = 1; i <= 15; i++) {
-        if (i % 15 == 0) puts("FizzBuzz");
-        else if (i % 3 == 0) puts("Fizz");
-        else if (i % 5 == 0) puts("Buzz");
+        if (i % 15 == 0) printf("FizzBuzz\n");
+        else if (i % 3 == 0) printf("Fizz\n");
+        else if (i % 5 == 0) printf("Buzz\n");
         else printf("%d\n", i);
     }
     return 0;

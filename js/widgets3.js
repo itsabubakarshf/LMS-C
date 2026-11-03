@@ -93,11 +93,11 @@ int main(void) {
 }`), 'No error — "int score;" reserves a box but leaves old junk inside, so you see a strange number.'],
     ['A number too big for its box', R_(`#include <stdio.h>
 int main(void) {
-    unsigned char lives = 255;
-    lives = lives + 1;
-    printf("lives = %d\\n", lives);
+    int hp = 2147483647;
+    hp = hp + 1;
+    printf("hp = %d\\n", hp);
     return 0;
-}`), 'No error — like a car odometer rolling from 99999 to 00000, the number wraps back to 0.'],
+}`), 'No error — an int cannot hold more than about 2 billion, so the number wraps around to a huge negative one.'],
   ];
   function R_(s) { return s; }
   const tr = b.querySelector('.traps');

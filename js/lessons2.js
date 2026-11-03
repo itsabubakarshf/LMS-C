@@ -213,7 +213,7 @@ int main(void) {
     return 0;
 }`, o: ['A↵BC↵', 'AB↵C↵', 'A B C', 'A↵B↵C↵'], a: 0, why: '"B" has no \\n after it, so "C" continues on the same line.' },
     { q: 'Which is a valid single-line comment in C?', o: ['// note', '# note', '-- note', '<!-- note -->'], a: 0, why: '// (C99) or /* … */. # starts a preprocessor directive.' },
-    { q: 'What is the difference between puts("hi") and printf("hi")?', o: ['None', 'puts adds a newline automatically', 'puts is only for numbers', 'printf cannot print text'], a: 1, why: 'puts writes the string plus \\n. printf writes exactly what you give it.' },
+    { q: 'What is the difference between printf("hi\n") and printf("hi")?', o: ['None', 'puts adds a newline automatically', 'puts is only for numbers', 'printf cannot print text'], a: 1, why: 'puts writes the string plus \\n. printf writes exactly what you give it.' },
     { q: 'main returns 0. What does the operating system conclude?', o: ['The program failed', 'The program succeeded', 'The program is empty', 'Nothing — the value is ignored'], a: 1, why: 'Exit code 0 is the universal “success” code (batch files check it with %ERRORLEVEL%).' },
     { q: 'What is the escape sequence for a tab character?', o: ['\\t', '\\n', '\\0', '\\\\'], a: 0, why: '\\t = tab, \\n = new line, \\0 = null, \\\\ = a backslash.' },
     { q: 'You forgot a semicolon at the end of line 4. The compiler usually reports the error on…', o: ['Line 4', 'Line 5 (the next statement)', 'Line 1', 'It never reports it'], a: 1, why: 'The compiler only realises something is wrong when it meets the next token.' },
@@ -512,9 +512,9 @@ int main(void) {
 #include <stdio.h>
 
 int main(void) {
-    puts("  /\\_/\\  ");
-    puts(" ( o.o ) ");
-    puts("  > ^ <  ");
+    printf("  /\\_/\\  \n");
+    printf(" ( o.o ) \n");
+    printf("  > ^ <  \n");
     printf("The cat says: \"Hello, %s!\"\n", "world");
     return 0;
 }
@@ -605,8 +605,8 @@ int main(void) {
     int perms = CAN_READ | CAN_WRITE;      // 0b011
     printf("perms = %d\n", perms);
 
-    if (perms & CAN_WRITE)    puts("can write");
-    if (!(perms & CAN_ADMIN)) puts("not an admin");
+    if (perms & CAN_WRITE)    printf("can write\n");
+    if (!(perms & CAN_ADMIN)) printf("not an admin\n");
 
     perms |= CAN_ADMIN;                    // switch a bit ON
     perms &= ~CAN_WRITE;                   // switch a bit OFF
@@ -620,9 +620,9 @@ int main(void) {
 int main(void) {
     int balance = 120, request = 50, pin_ok = 1;
 
-    if (!pin_ok)                 puts("Wrong PIN");
-    else if (request > balance)  puts("Insufficient funds");
-    else if (request % 10 != 0)  puts("Only multiples of 10");
+    if (!pin_ok)                 printf("Wrong PIN\n");
+    else if (request > balance)  printf("Insufficient funds\n");
+    else if (request % 10 != 0)  printf("Only multiples of 10\n");
     else {
         balance -= request;
         printf("Dispensed %d. Balance: %d\n", request, balance);
@@ -644,10 +644,10 @@ int main(void) {
     else if (dist < 15) s = PATROL;
 
     switch (s) {
-        case IDLE:   puts("zzz...");               break;
-        case PATROL: puts("walks the route");      break;
+        case IDLE:   printf("zzz...\n");               break;
+        case PATROL: printf("walks the route\n");      break;
         case CHASE:  printf("chases the player (distance %d)\n", dist); break;
-        case FLEE:   puts("runs away!");           break;
+        case FLEE:   printf("runs away!\n");           break;
     }
     return 0;
 }
@@ -687,9 +687,9 @@ int main(void) {
 
     do {
         choice = inputs[i++];
-        if (choice == 1)      { coins += 10; puts("opened a chest"); }
-        else if (choice == 2) { puts("walked"); }
-        else if (choice != 0) { puts("unknown command"); }
+        if (choice == 1)      { coins += 10; printf("opened a chest\n"); }
+        else if (choice == 2) { printf("walked\n"); }
+        else if (choice != 0) { printf("unknown command\n"); }
     } while (choice != 0);
 
     printf("coins: %d\n", coins);
@@ -722,7 +722,7 @@ int main(void) {
 int fib(int n) { return n < 2 ? n : fib(n - 1) + fib(n - 2); }
 
 void countdown(int n) {
-    if (n == 0) { puts("Liftoff!"); return; }
+    if (n == 0) { printf("Liftoff!\n"); return; }
     printf("%d... ", n);
     countdown(n - 1);
 }
@@ -749,7 +749,7 @@ int main(void) {
                 scores[j + 1] = t;
             }
 
-    puts("HIGH SCORES");
+    printf("HIGH SCORES\n");
     for (int i = 0; i < 3; i++)
         printf("%d. %5d\n", i + 1, scores[i]);
     return 0;
@@ -867,8 +867,8 @@ int main(void) {
 int main(void) {
     int answer = MessageBoxA(NULL, "Quit without saving?", "Confirm",
                              MB_YESNO | MB_ICONQUESTION);
-    if (answer == IDYES) puts("Bye!");
-    else                 puts("Back to the game");
+    if (answer == IDYES) printf("Bye!\n");
+    else                 printf("Back to the game\n");
     return 0;
 }
 `),

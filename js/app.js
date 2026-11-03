@@ -43,7 +43,7 @@ function renderNav(route) {
     ids.forEach(id => { const i = LESSONS.findIndex(l => l.id === id); if (i < 0) return; const l = LESSONS[i];
       h += A('#/lesson/' + l.id, (route === 'lesson/' + l.id ? 'on ' : '') + (isDone(l.id) ? 'done' : ''), isDone(l.id) ? '✓' : i + 1, esc(l.title), '<span class="min">' + (SKIM.includes(l.id) ? '⚡ ' : '') + l.min + '′</span>'); });
   });
-  h += '<h6>Tools</h6>' + A('#/play', route === 'play' ? 'on' : '', '⌨', 'Playground') + A('#/cheat', route === 'cheat' ? 'on' : '', '📋', 'C cheat sheet') + A('#/glossary', route === 'glossary' ? 'on' : '', '📖', 'Glossary') + A('#/exam', route === 'exam' ? 'on' : '', '🎓', 'Final exam' + (store.get('exam.best') ? ' · ' + store.get('exam.best') + '%' : '')) + A('#/session', route === 'session' ? 'on' : '', '⏱', '1-hour session plan');
+  h += '<h6>Tools</h6>' + A('#/play', route === 'play' ? 'on' : '', '⌨', 'Playground') + A('#/cheat', route === 'cheat' ? 'on' : '', '📋', 'C cheat sheet') + A('#/glossary', route === 'glossary' ? 'on' : '', '📖', 'Glossary') + A('#/exam', route === 'exam' ? 'on' : '', '🎓', 'Final exam' + (store.get('exam.best') ? ' · ' + store.get('exam.best') + '%' : '')) + A('#/tasks', route === 'tasks' ? 'on' : '', '📝', 'All tasks (tutor sheet)') + A('#/session', route === 'session' ? 'on' : '', '⏱', '1-hour session plan');
   h += '<h6>Course</h6><a href="#" id="resetAll" style="color:var(--muted)"><span class="num">↺</span>Reset my progress</a>';
   nav.innerHTML = h;
   const r = $('#resetAll'); if (r) r.onclick = e => { e.preventDefault(); if (confirm('Erase all progress, quiz answers and saved code on this browser?')) { try { Object.keys(localStorage).filter(k => k.startsWith('cq.')).forEach(k => localStorage.removeItem(k)); } catch (_) {} location.hash = '#/start'; location.reload(); } };
@@ -159,7 +159,7 @@ function startPage() {
   <p class="lead">You already program in GDScript, so this course skips the “what is a variable” part. It shows what C does differently — memory, pointers, headers — and ends with real Windows API calls. Every lesson is: a short idea → a diagram you can play with → tasks with hints and solutions.</p>
   <div class="row"><a class="btn primary" href="#/lesson/how">Start the quick tour →</a><a class="btn" href="#/lesson/addr">Jump to pointers</a><a class="btn" href="#/gd2c">⇄ GDScript → C cheat sheet</a></div></div>
   <h2>Your path</h2><div class="lcards">${TRACKS.map(trackCard).join('')}</div>
-  <h2>Tools</h2><div class="row"><a class="btn" href="#/play">⌨ Playground</a><a class="btn" href="#/cheat">📋 C cheat sheet</a><a class="btn" href="#/glossary">📖 Glossary</a><a class="btn" href="#/exam">🎓 Final exam</a><a class="btn" href="#/session">⏱ 1-hour session plan</a></div>
+  <h2>Tools</h2><div class="row"><a class="btn" href="#/play">⌨ Playground</a><a class="btn" href="#/cheat">📋 C cheat sheet</a><a class="btn" href="#/glossary">📖 Glossary</a><a class="btn" href="#/exam">🎓 Final exam</a><a class="btn" href="#/tasks">📝 All tasks</a><a class="btn" href="#/session">⏱ 1-hour session plan</a></div>
   <div class="callout tutor"><div class="ico">🎓</div><div><h4>Tutor guide: first session</h4>
     <p><b>1. Get to know him (10 min)</b> — what he wants to build; why the Windows API; agree weekday time slots.</p>
     <p><b>2. Tools (15 min)</b> — Visual Studio or MinGW; hello world; read compiler errors.</p>
@@ -170,6 +170,32 @@ function startPage() {
   const all = el('div', 'lcards'); LESSONS.forEach((l, i) => { const a = el('a', 'lcard' + (isDone(l.id) ? ' done' : ''), '<div class="em">' + l.icon + '</div><b>' + (i + 1) + '. ' + esc(l.title) + '</b><span>' + esc(l.sub) + ' · ' + l.min + ' min' + (isDone(l.id) ? ' · ✓' : '') + '</span>'); a.href = '#/lesson/' + l.id; all.appendChild(a); });
   main.appendChild(fold('📚 All ' + LESSONS.length + ' lessons (' + TOTAL_MIN + ' min in total)', all, false));
   document.title = 'C Quest — Learn C and the Windows API';
+}
+
+
+function tasksPage() {
+  main.innerHTML = '<h1>📝 All tasks <span class="muted" style="font-size:.6em;font-weight:400">· tutor sheet</span></h1><p class="lead">Every practice task in the course: statement, expected output, hint, starter code and <b>solution</b>. Open a task, copy it to your student, or print the page. (Contains solutions — do not share your screen on this page.)</p>';
+  const bar = el('div', 'row'); const pr = el('button', 'btn', '🖨 Print'); pr.onclick = () => window.print();
+  const ex = el('button', 'btn', 'Expand all'); let open = false; ex.onclick = () => { open = !open; main.querySelectorAll('details.tk').forEach(d => d.open = open); ex.textContent = open ? 'Collapse all' : 'Expand all'; };
+  bar.append(ex, pr); main.appendChild(bar);
+  const wrap = el('div', 'tsheet'); main.appendChild(wrap);
+  let total = 0;
+  LESSONS.forEach((l, i) => {
+    const tasks = l.blocks.filter(b => b.t === 'lab' && b.isTask); if (!tasks.length) return; total += tasks.length;
+    const h = el('h3', '', (i + 1) + '. ' + esc(l.title) + ' <span class="muted small">· ' + tasks.length + ' tasks</span>'); wrap.appendChild(h);
+    tasks.forEach(t => {
+      const d = el('details', 'tk');
+      const done = store.get('done.' + t.id) === '1';
+      d.appendChild(el('summary', '', 'Task ' + t.num + ' · ' + esc(t.title) + ' <span class="stars">' + '⭐'.repeat(t.level || 1) + '</span>' + (done ? ' <span style="color:var(--good)">✓ done</span>' : '')));
+      const files = t.files ? t.files.map(f => '<b class="small">' + esc(f.name) + '</b><pre>' + esc(f.code.replace(/^\n/, '')) + '</pre>').join('') : '<pre>' + esc((t.code || '').replace(/^\n/, '')) + '</pre>';
+      let sol = '';
+      if (t.solution) sol = typeof t.solution === 'object' ? Object.keys(t.solution).map(n => '<b class="small">' + esc(n) + '</b><pre>' + esc(t.solution[n].replace(/^\n/, '')) + '</pre>').join('') : '<pre>' + esc(t.solution.replace(/^\n/, '')) + '</pre>';
+      d.appendChild(el('div', 'tb', '<p><b>Task:</b> ' + t.task + '</p>' + (t.out ? '<b class="small">Expected output</b><pre>' + esc(t.out) + '</pre>' : '') + '<p class="small"><b>💡 Hint:</b> ' + (t.hint || '') + '</p><b class="small">Starter code</b>' + files + (sol ? '<details><summary class="small" style="cursor:pointer;color:var(--amber);font-weight:600">👀 Solution</summary>' + sol + '</details>' : '')));
+      wrap.appendChild(d);
+    });
+  });
+  main.querySelector('.lead').insertAdjacentHTML('beforeend', ' <b>' + total + ' tasks</b> in total.');
+  document.title = 'All tasks · C Quest';
 }
 
 function gd2cPage() {
@@ -286,7 +312,7 @@ function route() {
   const h = (location.hash || '#/start').replace(/^#\/?/, '');
   document.body.classList.remove('navopen');
   const [kind, arg] = h.split('/');
-  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else if (kind === 'glossary') glossaryPage(); else if (kind === 'session') sessionPage(); else if (kind === 'gd2c') gd2cPage(); else if (kind === 'exam') examPage(); else startPage();
+  if (kind === 'lesson') lessonPage(arg); else if (kind === 'play') playPage(); else if (kind === 'cheat') cheatPage(); else if (kind === 'glossary') glossaryPage(); else if (kind === 'session') sessionPage(); else if (kind === 'gd2c') gd2cPage(); else if (kind === 'tasks') tasksPage(); else if (kind === 'exam') examPage(); else startPage();
   renderNav(kind === 'lesson' ? 'lesson/' + arg : kind || 'start');
   window.scrollTo(0, 0); main.focus({ preventScroll: true });
 }

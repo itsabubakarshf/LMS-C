@@ -57,3 +57,10 @@ Not supported: function pointers, `goto`, variadic user functions, a real GUI wi
 environment variables on the project: `AUTH_EMAIL`, `AUTH_PASSWORD`, `AUTH_SECRET` (a long random string that signs the
 session cookie). If any is missing the site refuses to serve (fails closed). Opening `index.html` from disk is not protected.
 Test it with `node tests/auth.test.js`.
+
+## Practice tasks
+
+Every lesson ends with **3–5 graded tasks** (⭐ easy → ⭐⭐⭐ harder) with an exact *expected output*, a 💡 hint and a solution.
+Solutions only show when the **Tutor notes** switch is on. The **📝 All tasks** page lists every task (statement, hint, starter, solution) for you
+to copy to a student or print. Tasks only use topics taught earlier (no `puts`/`scanf`; comparisons appear in the "Making decisions" lesson).
+`node tests/content.test.cjs` enforces these rules.

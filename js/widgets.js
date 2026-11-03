@@ -212,10 +212,10 @@ W.flowIf = function () {
     nodes: [
       { id: 's', type: 'term', text: 'start', x: 320, y: 28, w: 110, h: 36 },
       { id: 'd1', type: 'dec', text: 'hp > 50 ?', x: 320, y: 112, w: 190, h: 70 },
-      { id: 'a', type: 'io', text: 'puts("Healthy")', x: 548, y: 112, w: 150, h: 40 },
+      { id: 'a', type: 'io', text: 'printf("Healthy")', x: 548, y: 112, w: 150, h: 40 },
       { id: 'd2', type: 'dec', text: 'hp > 0 ?', x: 320, y: 232, w: 190, h: 70 },
-      { id: 'bb', type: 'io', text: 'puts("Wounded")', x: 548, y: 232, w: 150, h: 40 },
-      { id: 'c', type: 'io', text: 'puts("Game over")', x: 320, y: 340, w: 160, h: 40 },
+      { id: 'bb', type: 'io', text: 'printf("Wounded")', x: 548, y: 232, w: 150, h: 40 },
+      { id: 'c', type: 'io', text: 'printf("Game over")', x: 320, y: 340, w: 160, h: 40 },
       { id: 'e', type: 'term', text: 'continue…', x: 320, y: 416, w: 110, h: 36 },
     ],
     edges: [
@@ -224,7 +224,7 @@ W.flowIf = function () {
       { from: 'a', to: 'e', fs: 'b', ts: 'r', via: [[548, 416]] }, { from: 'bb', to: 'e', fs: 'b', ts: 'r', via: [[548, 416]] }, { from: 'c', to: 'e' },
     ],
   });
-  b.innerHTML = '<div class="grid2" style="align-items:start"><div class="fcbox"></div><div><pre class="mono small" style="margin:0">' + highlight('if (hp > 50) {\n    puts("Healthy");\n} else if (hp > 0) {\n    puts("Wounded");\n} else {\n    puts("Game over");\n}') + '</pre>' +
+  b.innerHTML = '<div class="grid2" style="align-items:start"><div class="fcbox"></div><div><pre class="mono small" style="margin:0">' + highlight('if (hp > 50) {\n    printf("Healthy\\n");\n} else if (hp > 0) {\n    printf("Wounded\\n");\n} else {\n    printf("Game over\\n");\n}') + '</pre>' +
     '<div class="row" style="margin-top:14px"><label class="small">hp = <b class="hpv">70</b></label><input type="range" min="-10" max="100" value="70" style="flex:1"></div><button class="btn primary" style="margin-top:8px">▶ Run the flowchart</button><p class="small muted say" style="min-height:2.6em"></p></div></div>';
   b.querySelector('.fcbox').appendChild(fc.svg);
   const sl = b.querySelector('input'), hpv = b.querySelector('.hpv'), say = b.querySelector('.say'); let stop = null;
