@@ -302,9 +302,9 @@ body.fast .lead{font-size:1rem}
 .expected{margin:8px 18px 0;border:1px dashed var(--line);border-radius:10px;padding:6px 14px;background:var(--code-bg)}
 .expected b{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 .expected pre{margin:2px 0 0;white-space:pre-wrap;color:var(--ink)}
-.btn.sol,.btn.copy{display:none}
-body.tutor .btn.sol,body.tutor .btn.copy{display:inline-block}
-body.tutor .btn.sol{border-color:var(--amber);color:var(--amber)}
+.btn.copy{display:none}
+body.tutor .btn.copy{display:inline-block}
+.btn.sol{border-color:var(--amber);color:var(--amber)}
 .taskhead{margin:28px 0 4px}
 .taskhead h2{margin:0}
 .taskhead p{margin:2px 0 0;color:var(--muted);font-size:14px}

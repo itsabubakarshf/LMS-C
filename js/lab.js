@@ -134,17 +134,18 @@ function create(cfg) {
   const bReset = el('button', 'btn', '↺ Reset code');
   const bHint = el('button', 'btn', '💡 Hint');
   bar.append(bRun); if (!multi && !cfg.noStep) bar.appendChild(bStep); bar.append(bReset); if (cfg.hint) bar.appendChild(bHint);
-  const bSol = el('button', 'btn sol', '👀 Solution (tutor)'); let mine = null;
+  const bSol = el('button', 'btn sol', '👀 Show answer'); let mine = null;
   if (cfg.solution) {
     bar.appendChild(bSol);
     bSol.onclick = () => {
       exitStep();
+      if (mine === null && cfg.isTask && !bSol._ok) { if (!confirm('Try it yourself first! Show the answer now?')) return; bSol._ok = true; }
       if (multi && typeof cfg.solution === 'object') {
         if (mine === null) { files[curTab].text = ta.value; mine = files.map(f => f.text); files.forEach(f => { if (cfg.solution[f.name] !== undefined) f.text = cfg.solution[f.name].replace(/^\n/, ''); }); bSol.textContent = '↩ Back to my code'; }
-        else { files.forEach((f, i) => { f.text = mine[i]; }); mine = null; bSol.textContent = '👀 Solution (tutor)'; }
+        else { files.forEach((f, i) => { f.text = mine[i]; }); mine = null; bSol.textContent = '👀 Show answer'; }
         ta.value = files[curTab].text;
       } else if (mine === null) { mine = ta.value; ta.value = cfg.solution.replace(/^\n/, ''); bSol.textContent = '↩ Back to my code'; }
-      else { ta.value = mine; mine = null; bSol.textContent = '👀 Solution (tutor)'; }
+      else { ta.value = mine; mine = null; bSol.textContent = '👀 Show answer'; }
       curLine = errLine = 0; paint();
     };
   }

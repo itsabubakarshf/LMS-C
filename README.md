@@ -61,6 +61,6 @@ Test it with `node tests/auth.test.js`.
 ## Practice tasks
 
 Every lesson ends with **3–5 graded tasks** — tasks 1–2 are guided (fill in the `TODO`), from task 3 the student gets a **problem statement and a blank file** and writes the whole program — (⭐ easy → ⭐⭐⭐ harder) with an exact *expected output*, a 💡 hint and a solution.
-Solutions only show when the **Tutor notes** switch is on. The **📝 All tasks** page lists every task (statement, hint, starter, solution) for you
+Every task has a **👀 Show answer** button (it asks “try it yourself first?”); the **📋 Copy task** button shows with **Tutor notes** on. The **📝 All tasks** page lists every task (statement, hint, starter, solution) for you
 to copy to a student or print. Tasks only use topics taught earlier (no `puts`/`scanf`; comparisons appear in the "Making decisions" lesson).
 `node tests/content.test.cjs` enforces these rules.
